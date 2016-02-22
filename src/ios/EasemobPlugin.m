@@ -8,6 +8,7 @@
 
 #import "EasemobPlugin.h"
 #import "EaseMob.h"
+#import "APService.h"
 #import "TTGlobalUICommon.h"
 @implementation EasemobPlugin
 -(void)login:(CDVInvokedUrlCommand*)command
@@ -21,7 +22,7 @@
          
          if (loginInfo && !error) {
              //设置是否自动登录
-             [[EaseMob sharedInstance].chatManager setIsAutoLoginEnabled:YES];
+             [[EaseMob sharedInstance].chatManager setIsAutoLoginEnabled:NO];
              
              // 旧数据转换 (如果您的sdk是由2.1.2版本升级过来的，需要家这句话)
              [[EaseMob sharedInstance].chatManager importDataToNewDatabase];
@@ -30,14 +31,20 @@
              
              //获取群组列表
              [[EaseMob sharedInstance].chatManager asyncFetchMyGroupsList];
-             
-             //发送自动登陆状态通知
-             //[[NSNotificationCenter defaultCenter] postNotificationName:KNOTIFICATION_LOGINCHANGE object:@YES];
-    
+
+             NSString *JsonString=[self JsonString:@{@"key":[NSNumber numberWithInteger:0]}];
+            
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
+             });
          }
          else
          {
-             
+             NSString *JsonString=[self JsonString:@{@"key":[NSNumber numberWithInteger:1]}];
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
+             });
+             /*
              switch (error.errorCode)
              {
                  case EMErrorNotFound:
@@ -59,10 +66,38 @@
                      TTAlertNoTitle(NSLocalizedString(@"login.fail", @"Login failure"));
                      break;
              }
-            
+             */
+             
+             
          }
      } onQueue:nil];
-    
 }
+
+-(void)logOut:(CDVInvokedUrlCommand*)command
+{
+    //退出环信
+    [[EaseMob sharedInstance].chatManager asyncLogoffWithUnbindDeviceToken:YES completion:^(NSDictionary *info, EMError *error) {
+        if (!error && info) {
+            //设置是否自动登录
+            [[EaseMob sharedInstance].chatManager setIsAutoLoginEnabled:NO];
+        }
+    } onQueue:nil];
+    
+    [APService setAlias:@"000" callbackSelector:nil object:nil];
+    
+    [[UIApplication sharedApplication] unregisterForRemoteNotifications];
+}
+
+
+-(NSString*)JsonString:(id)obj
+{
+    NSError  *error;
+    NSData   *jsonData   = [NSJSONSerialization dataWithJSONObject:obj options:0 error:&error];
+    NSString *jsonString = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+    return jsonString;
+}
+
+
+
 
 @end

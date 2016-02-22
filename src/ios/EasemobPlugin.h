@@ -8,6 +8,10 @@
 
 #import <Cordova/CDV.h>
 @interface EasemobPlugin : CDVPlugin
+
 /*环信异步登陆*/
 -(void)login:(CDVInvokedUrlCommand*)command;
+
+/*环信异步登出*/
+-(void)logOut:(CDVInvokedUrlCommand*)command;
 @end
