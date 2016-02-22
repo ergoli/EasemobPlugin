@@ -527,5 +527,7 @@
         <resource-file src="src/ios/EaseUI_SDK/Resource/zh-Hans.lproj" />
         <header-file src="src/ios/TTGlobalUICommon.h" />
         <source-file src="src/ios/TTGlobalUICommon.m" />
+        <header-file src="src/ios/EasemobPlugin.h" />
+        <source-file src="src/ios/EasemobPlugin.m" />
 	</platform>
 </plugin>
