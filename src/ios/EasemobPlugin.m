@@ -32,7 +32,7 @@
              //获取群组列表
              [[EaseMob sharedInstance].chatManager asyncFetchMyGroupsList];
 
-             NSString *JsonString=[self JsonString:@{@"key":[NSNumber numberWithInteger:0]}];
+             NSString *JsonString=[self JsonString:@{@"messagekey":[NSNumber numberWithInteger:0]}];
             
              dispatch_async(dispatch_get_main_queue(), ^{
                  [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
@@ -40,7 +40,12 @@
          }
          else
          {
-             NSString *JsonString=[self JsonString:@{@"key":[NSNumber numberWithInteger:1]}];
+             NSInteger rs=1;
+             if(error.errorCode==EMErrorServerTooManyOperations)
+             {
+                 rs=0;
+             }
+             NSString *JsonString=[self JsonString:@{@"messagekey":[NSNumber numberWithInteger:rs]}];
              dispatch_async(dispatch_get_main_queue(), ^{
                  [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
              });
