@@ -14,4 +14,7 @@
 
 /*环信异步登出*/
 -(void)logOut:(CDVInvokedUrlCommand*)command;
+
+/*根据数组id获取环信会话信息*/
+-(void)getLatestMessage:(CDVInvokedUrlCommand*)command;
 @end
