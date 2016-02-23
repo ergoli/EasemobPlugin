@@ -22,6 +22,14 @@
 - (void)easemobApplication:(UIApplication *)application
 didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    if (launchOptions) {
+        NSDictionary*userInfo = [launchOptions objectForKey:@"UIApplicationLaunchOptionsRemoteNotificationKey"];
+        if(userInfo)
+        {
+            [self didReceiveRemoteNotification:userInfo];
+        }
+    }
+    
     NSString *plistPath = [[NSBundle mainBundle] pathForResource:@"EaseSDK_Params" ofType:@"plist"];
     NSDictionary *data = [[NSDictionary alloc] initWithContentsOfFile:plistPath];
     data=[data objectForKey:@"params"];
@@ -42,15 +50,10 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
                                      apnsCertName:apnsCertName
                                       otherConfig:@{kSDKConfigEnableConsoleLogger:[NSNumber numberWithBool:YES]}];
     
-    //注册登录状态监听
-//    [[NSNotificationCenter defaultCenter] addObserver:self
-//                                             selector:@selector(loginStateChange:)
-//                                                 name:KNOTIFICATION_LOGINCHANGE
-//                                               object:nil];
-    
     [self registerEaseMobNotification];
     
-    //[self loginStateChange:nil];
+    
+
 }
 
 #pragma mark - App Delegate
@@ -74,47 +77,6 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     [alert show];
 }
 
-/*
-#pragma mark - login changed
-
-- (void)loginStateChange:(NSNotification *)notification
-{
-    UINavigationController *navigationController = nil;
-    
-    BOOL isAutoLogin = [[[EaseMob sharedInstance] chatManager] isAutoLoginEnabled];
-    BOOL loginSuccess = [notification.object boolValue];
-    
-    if (isAutoLogin || loginSuccess) {//登陆成功加载主窗口控制器
-        //加载申请通知的数据
-        [[ApplyViewController shareController] loadDataSourceFromLocalDB];
-        if (self.mainController == nil) {
-            self.mainController = [[MainViewController alloc] init];
-            navigationController = [[UINavigationController alloc] initWithRootViewController:self.mainController];
-        }else{
-            navigationController  = self.mainController.navigationController;
-        }
-        // 环信UIdemo中有用到Parse，您的项目中不需要添加，可忽略此处
-        [self initParse];
-    }
-    else{//登陆失败加载登陆页面控制器
-        self.mainController = nil;
-        
-        LoginViewController *loginController = [[LoginViewController alloc] init];
-        navigationController = [[UINavigationController alloc] initWithRootViewController:loginController];
-        [self clearParse];
-    }
-    
-    //设置7.0以下的导航栏
-    if ([UIDevice currentDevice].systemVersion.floatValue < 7.0){
-        navigationController.navigationBar.barStyle = UIBarStyleDefault;
-        [navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"titleBar"]
-                                                 forBarMetrics:UIBarMetricsDefault];
-        [navigationController.navigationBar.layer setMasksToBounds:YES];
-    }
-    
-    self.window.rootViewController = navigationController;
-}
-*/
 #pragma mark - IChatManagerDelegate
 
 
@@ -143,17 +105,17 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     }
 }
 
-// 申请加入群组被拒绝回调
-- (void)didReceiveRejectApplyToJoinGroupFrom:(NSString *)fromId
-                                   groupname:(NSString *)groupname
-                                      reason:(NSString *)reason
-                                       error:(EMError *)error{
-    if (!reason || reason.length == 0) {
-        reason = [NSString stringWithFormat:NSLocalizedString(@"group.beRefusedToJoin", @"be refused to join the group\'%@\'"), groupname];
-    }
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"prompt", @"Prompt") message:reason delegate:nil cancelButtonTitle:NSLocalizedString(@"ok", @"OK") otherButtonTitles:nil, nil];
-    [alertView show];
-}
+//// 申请加入群组被拒绝回调
+//- (void)didReceiveRejectApplyToJoinGroupFrom:(NSString *)fromId
+//                                   groupname:(NSString *)groupname
+//                                      reason:(NSString *)reason
+//                                       error:(EMError *)error{
+//    if (!reason || reason.length == 0) {
+//        reason = [NSString stringWithFormat:NSLocalizedString(@"group.beRefusedToJoin", @"be refused to join the group\'%@\'"), groupname];
+//    }
+//    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"prompt", @"Prompt") message:reason delegate:nil cancelButtonTitle:NSLocalizedString(@"ok", @"OK") otherButtonTitles:nil, nil];
+//    [alertView show];
+//}
 
 
 // 已经同意并且加入群组后的回调
@@ -176,12 +138,12 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 
 #pragma mark - EMChatManagerUtilDelegate
 
-// 网络状态变化回调
-- (void)didConnectionStateChanged:(EMConnectionState)connectionState
-{
-//    _connectionState = connectionState;
-//    [self.mainController networkChanged:connectionState];
-}
+//// 网络状态变化回调
+//- (void)didConnectionStateChanged:(EMConnectionState)connectionState
+//{
+////    _connectionState = connectionState;
+////    [self.mainController networkChanged:connectionState];
+//}
 
 #pragma mark - EMPushManagerDelegateDevice
 
@@ -196,17 +158,17 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 // 打印收到的apns信息
 -(void)didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
-    NSError *parseError = nil;
-    NSData  *jsonData = [NSJSONSerialization dataWithJSONObject:userInfo
-                                                        options:NSJSONWritingPrettyPrinted error:&parseError];
-    NSString *str =  [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"apns.content", @"Apns content")
-                                                    message:str
-                                                   delegate:nil
-                                          cancelButtonTitle:NSLocalizedString(@"ok", @"OK")
-                                          otherButtonTitles:nil];
-    [alert show];
+//    NSError *parseError = nil;
+//    NSData  *jsonData = [NSJSONSerialization dataWithJSONObject:userInfo
+//                                                        options:NSJSONWritingPrettyPrinted error:&parseError];
+//    NSString *str =  [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+//    
+//    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"apns.content", @"Apns content")
+//                                                    message:str
+//                                                   delegate:nil
+//                                          cancelButtonTitle:NSLocalizedString(@"ok", @"OK")
+//                                          otherButtonTitles:nil];
+//    [alert show];
     
 }
 

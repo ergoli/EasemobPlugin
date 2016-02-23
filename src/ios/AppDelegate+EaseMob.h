@@ -12,7 +12,7 @@
 
 #import "AppDelegate.h"
 #import "EaseMob.h"
-@interface AppDelegate (EaseMob)
+@interface AppDelegate (EaseMob)<EMChatManagerDelegate>
 
 - (void)easemobApplication:(UIApplication *)application
 didFinishLaunchingWithOptions:(NSDictionary *)launchOptions;
