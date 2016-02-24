@@ -60,8 +60,7 @@ public class EasemobPlugin extends CordovaPlugin {
 //                            Log.e("main", "登陆聊天服务器成功！");
 //                        }
 //                    });
-
-                    Log.e("onSuccess", "登陆聊天服务器成功！");
+//                    Log.e("onSuccess", "登陆聊天服务器成功！");
 
                 }
 
