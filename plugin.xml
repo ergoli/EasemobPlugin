@@ -30,7 +30,14 @@
         </config-file>
 
 		<config-file target="AndroidManifest.xml" parent="/manifest/application">
-        	<activity android:name=".ChatActivity"></activity>
+        	<activity 
+        		android:name="com.tyrion.plugin.easemob.SingleChatActivity" 
+        		android:configChanges="keyboardHidden|orientation" 
+				android:theme="@android:style/Theme.NoTitleBar"></activity>
+        	<activity 
+        		android:name="com.tyrion.plugin.easemob.ChatRoomActivity"
+        		android:configChanges="keyboardHidden|orientation" 
+				android:theme="@android:style/Theme.NoTitleBar"></activity>
 	    	<meta-data android:name="EASEMOB_APPKEY"  android:value="$APP_KEY" />
 	    	<service android:name="com.easemob.chat.EMChatService" />
         </config-file>
@@ -50,7 +57,8 @@
 		<source-file src="src/android/libs/glide-3.6.1.jar" target-dir="libs" />
 
 		<source-file src="src/android/EasemobPlugin.java" target-dir="src/com/tyrion/plugin/easemob" />
-		<source-file src="src/android/ChatActivity.java" target-dir="src/com/tyrion/plugin/easemob" />
+		<source-file src="src/android/SingleChatActivity.java" target-dir="src/com/tyrion/plugin/easemob" />
+		<source-file src="src/android/ChatRoomActivity.java" target-dir="src/com/tyrion/plugin/easemob" />
 		<source-file src="src/android/easemob" target-dir="src/com" />
 
 		<source-file src="src/android/res/anim/fade_in.xml" target-dir="res/anim" />
