@@ -7,13 +7,90 @@
 //
 
 #import "EasemobPlugin.h"
-#import "EaseMob.h"
+#import "EaseMessageViewController.h"
 #import "EaseConversationModel.h"
 #import "EaseConvertToCommonEmoticonsHelper.h"
 #import "EaseEmotionManager.h"
 #import "APService.h"
+#import "AppDelegate.h"
 #import "TTGlobalUICommon.h"
+#import "ChatViewController.h"
+
+
 @implementation EasemobPlugin
+
+- (CDVPlugin*)initWithWebView:(UIWebView*)theWebView{
+    if (self=[super initWithWebView:theWebView]) {
+        
+        NSNotificationCenter *defaultCenter_0 = [NSNotificationCenter defaultCenter];
+        [defaultCenter_0 addObserver:self
+                          selector:@selector(networkDidReceiveMessageFromIM:)
+                              name:networkDidReceiveMessageFromIM
+                            object:nil];
+        
+        NSNotificationCenter *defaultCenter_1 = [NSNotificationCenter defaultCenter];
+        [defaultCenter_1 addObserver:self
+                          selector:@selector(sendMsgToWebView:)
+                              name:sendMsgToWebView
+                            object:nil];
+    }
+    return self;
+}
+
+-(void)chat:(CDVInvokedUrlCommand*)command
+{
+   //[self CreateChatVC:@"" conversationType:eConversationTypeChat];
+}
+
+-(void)chatRoom:(CDVInvokedUrlCommand*)command
+{
+    NSString *group_ID=command.arguments[0];
+    NSDictionary *userInfo=command.arguments[1];
+    NSString *groupName=command.arguments[2];
+    [self CreateGroupVC:group_ID userInfo:userInfo groupName:groupName];
+}
+
+-(void)CreateChatVC:(NSString *)conversationChatter conversationType:(EMConversationType)conversationType
+{
+    ChatViewController *chat=[[ChatViewController alloc] initWithConversationChatter:conversationChatter conversationType:conversationType];
+    
+    UINavigationController *nav=[[UINavigationController alloc] initWithRootViewController:chat];
+    AppDelegate *app_delegate=[UIApplication sharedApplication].delegate;
+    [app_delegate.viewController presentViewController:nav animated:YES completion:nil];
+}
+
+-(void)CreateGroupVC:(NSString *)conversationChatter userInfo:(NSDictionary*)userInfo groupName:(NSString*)groupName
+{
+    ChatViewController *chat=[[ChatViewController alloc] initWithConversationChatter:conversationChatter conversationType:eConversationTypeGroupChat];
+    chat.nav_title=groupName;
+    chat.userInfo=userInfo;
+    UINavigationController *nav=[[UINavigationController alloc] initWithRootViewController:chat];
+    AppDelegate *app_delegate=[UIApplication sharedApplication].delegate;
+    [app_delegate.viewController presentViewController:nav animated:YES completion:nil];
+}
+
+/*应用内接收环信消息*/
+-(void)sendMsgToWebView:(id)notification
+{
+    NSDictionary *dict = [notification object];
+    NSString *JsonString=[self JsonString:dict];
+    [self sendMsg:JsonString];
+}
+
+/*应用内接收环信消息*/
+-(void)networkDidReceiveMessageFromIM:(id)notification
+{
+    NSDictionary *dict = [notification object];
+    NSString *JsonString=[self JsonString:@{@"messageType":@(2),@"messageData":dict}];
+    [self sendMsg:JsonString];
+}
+
+-(void)sendMsg:(NSString*)JsonString
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
+    });
+}
 
 /*根据数组id获取环信会话信息*/
 -(void)getLatestMessage:(CDVInvokedUrlCommand*)command
@@ -27,9 +104,10 @@
                 if([chatter isEqualToString:obj.chatter])
                 {
                     EMMessage *lastMessage = [obj latestMessage];
-                    NSString*title=[self getMessageTitle:lastMessage];
+                    NSString*title=[EasemobPlugin getMessageTitle:lastMessage];
                     NSNumber *timestamp=[NSNumber numberWithLongLong:lastMessage.timestamp];
-                    [rs_array addObject:@{@"chat_id":chatter,@"title":title,@"timestamp":timestamp}];
+                    NSNumber *unreadMessagesCount=[NSNumber numberWithUnsignedInteger:obj.unreadMessagesCount];
+                    [rs_array addObject:@{@"chat_id":chatter,@"title":title,@"timestamp":timestamp,@"unread_count":unreadMessagesCount}];
                     break;
                 }
             }
@@ -43,7 +121,7 @@
                                }else {
                                    return(NSComparisonResult)NSOrderedDescending;
                                }
-                           }];
+        }];
         
         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:sorted];
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -54,7 +132,7 @@
 
 }
 
--(NSString*)getMessageTitle:(EMMessage *)message
++(NSString*)getMessageTitle:(EMMessage *)message
 {
     NSString *messageTitle=nil;
     id<IEMMessageBody> messageBody =message.messageBodies.lastObject;
@@ -102,7 +180,7 @@
              //设置是否自动登录
              [[EaseMob sharedInstance].chatManager setIsAutoLoginEnabled:NO];
              
-             // 旧数据转换 (如果您的sdk是由2.1.2版本升级过来的，需要家这句话)
+             //旧数据转换 (如果您的sdk是由2.1.2版本升级过来的，需要家这句话)
              [[EaseMob sharedInstance].chatManager importDataToNewDatabase];
              //获取数据库中数据
              [[EaseMob sharedInstance].chatManager loadDataFromDatabase];
@@ -110,11 +188,13 @@
              //获取群组列表
              [[EaseMob sharedInstance].chatManager asyncFetchMyGroupsList];
 
-             NSString *JsonString=[self JsonString:@{@"messageType":[NSNumber numberWithInteger:0]}];
-            
+             [self removeEmptyConversationsFromDB];
+             
+             NSString *JsonString=[self JsonString:@{@"messageType":@(0)}];
              dispatch_async(dispatch_get_main_queue(), ^{
                  [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
              });
+             
          }
          else
          {
@@ -123,7 +203,7 @@
              {
                  rs=0;
              }
-             NSString *JsonString=[self JsonString:@{@"messageType":[NSNumber numberWithInteger:rs]}];
+             NSString *JsonString=[self JsonString:@{@"messageType":@(rs)}];
              dispatch_async(dispatch_get_main_queue(), ^{
                  [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
              });
@@ -167,8 +247,9 @@
     } onQueue:nil];
     
     [APService setAlias:@"000" callbackSelector:nil object:nil];
-    
     [[UIApplication sharedApplication] unregisterForRemoteNotifications];
+    [APService setBadge:0];
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
 }
 
 
@@ -180,6 +261,25 @@
     return jsonString;
 }
 
+- (void)removeEmptyConversationsFromDB
+{
+    NSArray *conversations = [[EaseMob sharedInstance].chatManager conversations];
+    NSMutableArray *needRemoveConversations;
+    for (EMConversation *conversation in conversations) {
+        if (!conversation.latestMessage || (conversation.conversationType == eConversationTypeChatRoom)) {
+            if (!needRemoveConversations) {
+                needRemoveConversations = [[NSMutableArray alloc] initWithCapacity:0];
+            }
+            
+            [needRemoveConversations addObject:conversation.chatter];
+        }
+    }
+    
+    if (needRemoveConversations && needRemoveConversations.count > 0) {
+        [[EaseMob sharedInstance].chatManager removeConversationsByChatters:needRemoveConversations
+                                                             deleteMessages:YES                                                       append2Chat:NO];
+    }
+}
 
 
 

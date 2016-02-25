@@ -7,6 +7,9 @@
 //
 
 #import <Cordova/CDV.h>
+#import "EaseMob.h"
+static NSString *networkDidReceiveMessageFromIM=@"networkDidReceiveMessageFromIM";
+static NSString *sendMsgToWebView=@"sendMsgToWebView";
 @interface EasemobPlugin : CDVPlugin
 
 /*环信异步登陆*/
@@ -17,4 +20,10 @@
 
 /*根据数组id获取环信会话信息*/
 -(void)getLatestMessage:(CDVInvokedUrlCommand*)command;
+
+-(void)chat:(CDVInvokedUrlCommand*)command;
+
+-(void)chatRoom:(CDVInvokedUrlCommand*)command;
+
++(NSString*)getMessageTitle:(EMMessage *)message;
 @end
