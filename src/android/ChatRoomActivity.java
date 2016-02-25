@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
+import com.easemob.chat.EMChatManager;
+import com.easemob.chat.EMChatOptions;
 import com.easemob.easeui.EaseConstant;
 import com.easemob.easeui.controller.EaseUI;
 import com.easemob.easeui.domain.EaseUser;
@@ -20,7 +22,7 @@ import org.json.JSONObject;
 public class ChatRoomActivity extends FragmentActivity{
 
     JSONObject usersJson = null;
-
+    String groupID = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // TODO Auto-generated method stub
@@ -28,11 +30,10 @@ public class ChatRoomActivity extends FragmentActivity{
         setContentView(R.layout.activity_chat);
 
         Intent intent=getIntent();
-        String groupID =intent.getStringExtra("groupID");
+        groupID =intent.getStringExtra("groupID");
         final String usersList =intent.getStringExtra("usersList");
         Log.e("groupID", groupID);
 
-        EaseUI.getInstance().init(this.getApplication());
         EaseUI easeUI = EaseUI.getInstance();
 
         try {
@@ -50,7 +51,7 @@ public class ChatRoomActivity extends FragmentActivity{
                 try {
                     user.setNick(usersJson.getJSONObject(username).getString("nickname"));
                     user.setAvatar(usersJson.getJSONObject(username).getString("avatar"));
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 return user;
@@ -63,5 +64,22 @@ public class ChatRoomActivity extends FragmentActivity{
         args.putString(EaseConstant.EXTRA_USER_ID, groupID);
         chatFragment.setArguments(args);
         getSupportFragmentManager().beginTransaction().add(R.id.container, chatFragment).commit();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        EasemobPlugin.currentChatID = "";
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        EasemobPlugin.currentChatID = groupID;
     }
 }
