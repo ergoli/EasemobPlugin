@@ -1,22 +1,23 @@
 package com.tyrion.plugin.easemob;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-
 import com.easemob.EMCallBack;
+import com.easemob.EMEventListener;
+import com.easemob.EMNotifierEvent;
 import com.easemob.chat.EMChat;
 import com.easemob.chat.EMChatManager;
 import com.easemob.chat.EMConversation;
+import com.easemob.chat.EMGroupManager;
 import com.easemob.chat.EMMessage;
-import com.easemob.chat.MessageBody;
+import com.easemob.easeui.controller.EaseUI.EaseSettingsProvider;
 import com.easemob.easeui.controller.EaseUI;
-import com.tyrion.plugin.easemob.SingleChatActivity;
-import com.tyrion.plugin.easemob.ChatRoomActivity;
-
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
-
 import org.apache.cordova.PluginResult;
+import org.apache.cordova.dialogs.Notification;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,19 +25,26 @@ import org.json.JSONObject;
 /**
  * This class echoes a string called from JavaScript.
  */
-public class EasemobPlugin extends CordovaPlugin {
+public class EasemobPlugin extends CordovaPlugin implements EMEventListener, EaseSettingsProvider{
 
     CallbackContext callback;
-
+    static String currentChatID = "";
+    public Context context = null;
+    private MyEaseNotifier notifier;
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("init")) {
             callback = callbackContext;
-
+            context = this.cordova.getActivity();
+            //环信和EaseUI初始化
             EMChat.getInstance().init(this.cordova.getActivity().getApplication());
             EMChat.getInstance().setDebugMode(true);
-
             EaseUI.getInstance().init(this.cordova.getActivity().getApplication());
+
+            EMChatManager.getInstance().registerEventListener(this);//监听新消息，弹出顶部通知
+            EaseUI.getInstance().setSettingsProvider(this);//设置震动和铃声
+
+            notifier = new MyEaseNotifier(context);
 
             PluginResult result = new PluginResult(PluginResult.Status.OK, "init");
             callback.sendPluginResult(result);
@@ -53,15 +61,9 @@ public class EasemobPlugin extends CordovaPlugin {
             EMChatManager.getInstance().login(userName, password, new EMCallBack() {//回调
                 @Override
                 public void onSuccess() {
-//                    runOnUiThread(new Runnable() {
-//                        public void run() {
-//                            EMGroupManager.getInstance().loadAllGroups();
-//                            EMChatManager.getInstance().loadAllConversations();
-//                            Log.e("main", "登陆聊天服务器成功！");
-//                        }
-//                    });
+                    EMGroupManager.getInstance().loadAllGroups();
+                    EMChatManager.getInstance().loadAllConversations();
 //                    Log.e("onSuccess", "登陆聊天服务器成功！");
-
                 }
 
                 @Override
@@ -108,6 +110,8 @@ public class EasemobPlugin extends CordovaPlugin {
             intent.setClass(this.cordova.getActivity(), ChatRoomActivity.class);
             this.cordova.getActivity().startActivity(intent);
 
+            currentChatID = groupID;
+
             PluginResult result = new PluginResult(PluginResult.Status.OK, "chat");
             callback.sendPluginResult(result);
 
@@ -122,27 +126,13 @@ public class EasemobPlugin extends CordovaPlugin {
             for(int i=0; i<groupID.length(); i++){
                 JSONObject lastMsg = new JSONObject();
                 String chatId = groupID.getString(i);
+
                 EMConversation conversation = EMChatManager.getInstance().getConversation(chatId);
                 int unreadMsgCount = conversation.getUnreadMsgCount();
                 EMMessage message = conversation.getLastMessage();
-                String msgBody = message.getBody().toString();
-                String msgTitle = msgBody.substring(msgBody.indexOf(":"), msgBody.length());
-
                 lastMsg.put("chat_id", chatId);
                 lastMsg.put("unread_count", unreadMsgCount);
-                if (message.getType() == EMMessage.Type.TXT) {
-                    lastMsg.put("title", msgTitle);
-                } else if (message.getType() == EMMessage.Type.IMAGE) {
-                    lastMsg.put("title", "[图片]");
-                } else if (message.getType() == EMMessage.Type.LOCATION) {
-                    lastMsg.put("title", "[位置]");
-                } else if (message.getType() == EMMessage.Type.VOICE) {
-                    lastMsg.put("title", "[语音]");
-                } else if (message.getType() == EMMessage.Type.VIDEO) {
-                    lastMsg.put("title", "[视频]");
-                } else if (message.getType() == EMMessage.Type.FILE) {
-                    lastMsg.put("title", "[文件]");
-                }
+                lastMsg.put("title", EMMessageUtil.getMsgContent(message));
                 lastMsg.put("timestamp", message.getMsgTime());
                 lastMsgs.put(lastMsg);
             }
@@ -151,5 +141,42 @@ public class EasemobPlugin extends CordovaPlugin {
             callback.sendPluginResult(result);
         }
         return false;
+    }
+
+    @Override
+    public void onEvent(EMNotifierEvent event) {
+        if(event.getEvent() == EMNotifierEvent.Event.EventNewMessage){
+            EMMessage message = (EMMessage) event.getData();
+//            Log.e("msg", message.getBody().toString());
+
+            String chatID = message.getFrom();
+            if (message.getChatType() == EMMessage.ChatType.GroupChat) {
+                chatID = message.getTo();
+            }
+
+            if (!currentChatID.equals(chatID)) {
+                notifier.onNewMsg(message);
+            }
+        }
+    }
+
+    @Override
+    public boolean isMsgNotifyAllowed(EMMessage message) {
+        return true;
+    }
+
+    @Override
+    public boolean isMsgSoundAllowed(EMMessage message) {
+        return false;
+    }
+
+    @Override
+    public boolean isMsgVibrateAllowed(EMMessage message) {
+        return true;
+    }
+
+    @Override
+    public boolean isSpeakerOpened() {
+        return true;
     }
 }

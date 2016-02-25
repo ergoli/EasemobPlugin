@@ -42,6 +42,11 @@
 				android:theme="@android:style/Theme.NoTitleBar"></activity>
 	    	<meta-data android:name="EASEMOB_APPKEY"  android:value="$APP_KEY" />
 	    	<service android:name="com.easemob.chat.EMChatService" />
+	        <receiver android:name="com.tyrion.plugin.easemob.NotifierEventBroadcastReceiver">
+	            <intent-filter>
+	                <action android:name="com.tyrion.notifier.event"/>
+	            </intent-filter>
+	        </receiver>
         </config-file>
 
 		<source-file src="src/android/libs/arm64-v8a/libeasemob_jni.so" target-dir="libs/arm64-v8a" />
@@ -61,6 +66,9 @@
 		<source-file src="src/android/EasemobPlugin.java" target-dir="src/com/tyrion/plugin/easemob" />
 		<source-file src="src/android/SingleChatActivity.java" target-dir="src/com/tyrion/plugin/easemob" />
 		<source-file src="src/android/ChatRoomActivity.java" target-dir="src/com/tyrion/plugin/easemob" />
+		<source-file src="src/android/EMMessageUtil.java" target-dir="src/com/tyrion/plugin/easemob" />
+		<source-file src="src/android/NotifierEventBroadcastReceiver.java" target-dir="src/com/tyrion/plugin/easemob" />
+		<source-file src="src/android/MyEaseNotifier.java" target-dir="src/com/tyrion/plugin/easemob" />
 		<source-file src="src/android/easemob" target-dir="src/com" />
 
 		<source-file src="src/android/res/anim/fade_in.xml" target-dir="res/anim" />

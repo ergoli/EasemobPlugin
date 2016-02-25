@@ -28,6 +28,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.easemob.chat.EMChatManager;
 import com.easemob.chat.EMMessage;
@@ -242,7 +243,8 @@ public class EaseNotifier {
                 msgIntent = notificationInfoProvider.getLaunchIntent(message);
             }
 
-            PendingIntent pendingIntent = PendingIntent.getActivity(appContext, notifyID, msgIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+//            PendingIntent pendingIntent = PendingIntent.getActivity(appContext, notifyID, msgIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(appContext, notifyID, msgIntent,PendingIntent.FLAG_UPDATE_CURRENT);
 
             if(numIncrease){
                 // prepare latest event info section
