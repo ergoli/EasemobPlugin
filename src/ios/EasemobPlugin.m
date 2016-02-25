@@ -45,17 +45,25 @@
 -(void)chatRoom:(CDVInvokedUrlCommand*)command
 {
     NSString *group_ID=command.arguments[0];
-    [self CreateChatVC:group_ID conversationType:eConversationTypeGroupChat];
+    NSDictionary *userInfo=command.arguments[1];
+    NSString *groupName=command.arguments[2];
+    [self CreateGroupVC:group_ID userInfo:userInfo groupName:groupName];
 }
 
 -(void)CreateChatVC:(NSString *)conversationChatter conversationType:(EMConversationType)conversationType
 {
-    EaseMessageViewController *chat=[[EaseMessageViewController alloc] initWithConversationChatter:conversationChatter conversationType:conversationType];
+    ChatViewController *chat=[[ChatViewController alloc] initWithConversationChatter:conversationChatter conversationType:conversationType];
     
-    //ChatViewController *chat = [[ChatViewController alloc] initWithConversationChatter:conversationChatter conversationType:conversationType];
-//    chatController.title = conversationModel.title;
-//    [self.navigationController pushViewController:chatController animated:YES];
-    
+    UINavigationController *nav=[[UINavigationController alloc] initWithRootViewController:chat];
+    AppDelegate *app_delegate=[UIApplication sharedApplication].delegate;
+    [app_delegate.viewController presentViewController:nav animated:YES completion:nil];
+}
+
+-(void)CreateGroupVC:(NSString *)conversationChatter userInfo:(NSDictionary*)userInfo groupName:(NSString*)groupName
+{
+    ChatViewController *chat=[[ChatViewController alloc] initWithConversationChatter:conversationChatter conversationType:eConversationTypeGroupChat];
+    chat.nav_title=groupName;
+    chat.userInfo=userInfo;
     UINavigationController *nav=[[UINavigationController alloc] initWithRootViewController:chat];
     AppDelegate *app_delegate=[UIApplication sharedApplication].delegate;
     [app_delegate.viewController presentViewController:nav animated:YES completion:nil];

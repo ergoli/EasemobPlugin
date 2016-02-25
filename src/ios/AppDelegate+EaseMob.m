@@ -15,6 +15,7 @@
 #import "EaseUI.h"
 #import "APService.h"
 #import "TTGlobalUICommon.h"
+#import "Utils.h"
 #import <objc/runtime.h>
 /**
  *  本类中做了EaseMob初始化和推送等操作
@@ -64,8 +65,12 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     
     [self registerEaseMobNotification];
     
+    [[UINavigationBar appearance] setTitleTextAttributes:@{NSFontAttributeName :[UIFont systemFontOfSize:17],
+                                                           NSForegroundColorAttributeName: [Utils colorWithHexString:@"#252729"]}];
     
-
+    if( ([[[UIDevice currentDevice] systemVersion] doubleValue]>=7.0)) {
+        [[UINavigationBar appearance] setTranslucent:NO];
+    }
 }
 
 #pragma mark - App Delegate
@@ -90,6 +95,11 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 
 #pragma mark - IChatManagerDelegate
 
+- (void)didLoginFromOtherDevice
+{
+    NSDictionary *dict=@{@"messageType":@(7)};
+    [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
+}
 
 #pragma mark - EMChatManagerGroupDelegate
 
