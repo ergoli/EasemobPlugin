@@ -569,7 +569,7 @@
         <!--config-file-->
         <resource-file src="src/ios/EaseSDK_Params.plist"/>
         
-        <config-file target="*EaseSDK_Params.plist" parent="params">
+        <config-file target="src/ios/EaseSDK_Params.plist" parent="params">
             <dict>
                 <key>APP_KEY</key>
                 <string>$APP_KEY</string>
