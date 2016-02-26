@@ -154,10 +154,13 @@
         _scrollview.showsVerticalScrollIndicator = NO;
         _scrollview.alwaysBounceHorizontal = YES;
         _scrollview.delegate = self;
-        _pageControl = [[UIPageControl alloc] init];
+        
+        
+       
         UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
         [flowLayout setScrollDirection:UICollectionViewScrollDirectionHorizontal];
 
+        /*Emoji ContentView*/
         _collectionView = [[UICollectionView alloc] initWithFrame:frame collectionViewLayout:flowLayout];
         [self.collectionView registerClass:[EaseCollectionViewCell class] forCellWithReuseIdentifier:@"collectionCell"];
         [self.collectionView registerClass:[UICollectionReusableView class] forSupplementaryViewOfKind:UICollectionElementKindSectionFooter withReuseIdentifier:@"FooterView"];
@@ -169,11 +172,31 @@
         _collectionView.alwaysBounceHorizontal = YES;
         _collectionView.pagingEnabled = YES;
         _collectionView.userInteractionEnabled = YES;
-//        [self addSubview:_scrollview];
-        [self addSubview:_pageControl];
         [self addSubview:_collectionView];
+        
+        CGFloat height=2;
+        _pageControl = [[UIPageControl alloc] initWithFrame:CGRectMake(0,self.bounds.size.height-height, self.bounds.size.width, height)];
+        _pageControl.backgroundColor=[UIColor clearColor];
+        _pageControl.center=CGPointMake(self.bounds.size.width*0.5, _pageControl.center.y);
+        _pageControl.currentPageIndicatorTintColor = [UIColor darkGrayColor];
+        _pageControl.pageIndicatorTintColor = [UIColor grayColor];
+        [self addSubview:_pageControl];
+        
     }
     return self;
+}
+
+
+-(void)initPageCount
+{
+    EaseEmotionManager *emotionManager = [_emotionManagers objectAtIndex:0];
+    NSInteger maxRow = emotionManager.emotionRow;
+    NSInteger maxCol = emotionManager.emotionCol;
+    NSInteger pageSize=maxRow*maxCol;
+    NSInteger rs_page=emotionManager.emotions.count/pageSize;
+    rs_page=emotionManager.emotions.count%pageSize>0?rs_page+1:rs_page;
+    self.pageControl.numberOfPages=rs_page;
+    self.pageControl.currentPage=0;
 }
 
 #pragma mark - UICollectionViewDataSource
@@ -305,6 +328,7 @@
         [view removeFromSuperview];
     }
     _emotionManagers = emotionManagers;
+    [self initPageCount];
     [_collectionView reloadData];
 }
 
@@ -325,7 +349,15 @@
 #pragma mark - UIScrollViewDelegate
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-    
+    NSInteger cellCount=self.pageControl.numberOfPages;
+    CGFloat pageWidth =self.bounds.size.width;
+    NSInteger cellToSwipe = (scrollView.contentOffset.x)/pageWidth;
+    if (cellToSwipe < 0) {
+        cellToSwipe = 0;
+    } else if (cellToSwipe >= cellCount) {
+        cellToSwipe = cellCount - 1;
+    }
+    self.pageControl.currentPage=cellToSwipe;
 }
 
 @end
