@@ -66,11 +66,10 @@ static EaseMessageReadManager *detailInstance = nil;
 {
     if (_photoBrowser == nil) {
         _photoBrowser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-        _photoBrowser.displayActionButton = YES;
+        _photoBrowser.displayActionButton = NO;
         _photoBrowser.displayNavArrows = YES;
         _photoBrowser.displaySelectionButtons = NO;
         _photoBrowser.alwaysShowControls = NO;
-        _photoBrowser.wantsFullScreenLayout = YES;
         _photoBrowser.zoomPhotosToFill = YES;
         _photoBrowser.enableGrid = NO;
         _photoBrowser.startOnGrid = NO;
@@ -113,6 +112,33 @@ static EaseMessageReadManager *detailInstance = nil;
 
 
 #pragma mark - public
+
+- (void)showBrowserWithImages:(NSArray *)imageArray vc:(UIViewController*)vc
+{
+    if (imageArray && [imageArray count] > 0) {
+        NSMutableArray *photoArray = [NSMutableArray array];
+        for (id object in imageArray) {
+            MWPhoto *photo;
+            if ([object isKindOfClass:[UIImage class]]) {
+                photo = [MWPhoto photoWithImage:object];
+            }
+            else if ([object isKindOfClass:[NSURL class]])
+            {
+                photo = [MWPhoto photoWithURL:object];
+            }
+            else if ([object isKindOfClass:[NSString class]])
+            {
+                
+            }
+            [photoArray addObject:photo];
+        }
+        
+        self.photos = photoArray;
+    }
+    
+    [vc presentViewController:self.photoNavigationController animated:YES completion:nil];
+}
+
 
 - (void)showBrowserWithImages:(NSArray *)imageArray
 {

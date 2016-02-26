@@ -561,8 +561,11 @@
         <resource-file src="src/ios/EaseUI_SDK/Resource/icon_035_cover.png" />
         <resource-file src="src/ios/EaseUI_SDK/Resource/icon_040.gif" />
         <resource-file src="src/ios/EaseUI_SDK/Resource/icon_040_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/btn_back_black@2x.png" />
         <header-file src="src/ios/TTGlobalUICommon.h" />
         <source-file src="src/ios/TTGlobalUICommon.m" />
+        <header-file src="src/ios/ChatViewController.h" />
+        <source-file src="src/ios/ChatViewController.m" />
         <header-file src="src/ios/EasemobPlugin.h" />
         <source-file src="src/ios/EasemobPlugin.m" />
         
