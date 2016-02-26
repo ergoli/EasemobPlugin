@@ -569,18 +569,16 @@
         <!--config-file-->
         <resource-file src="src/ios/EaseSDK_Params.plist"/>
         
-        <config-file target="*EaseSDK_Params.plist" parent="APP_KEY">
-            <string>$API_KEY</string>
+        <config-file target="*EaseSDK_Params.plist" parent="params">
+            <dict>
+                <key>APP_KEY</key>
+                <string>$APP_KEY</string>
+                <key>CERTIFICATE_DEBUG_KEY</key>
+                <string>$CERTIFICATE_DEBUG_KEY</string>
+                <key>CERTIFICATE_RELEASE_KEY</key>
+                <string>$CERTIFICATE_RELEASE_KEY</string>
+            </dict>
         </config-file>
-        
-        <config-file target="*EaseSDK_Params.plist" parent="CERTIFICATE_DEBUG_KEY">
-            <string>$CERTIFICATE_DEBUG_KEY</string>
-        </config-file>
-        
-        <config-file target="*EaseSDK_Params.plist" parent="CERTIFICATE_RELEASE_KEY">
-            <string>$CERTIFICATE_RELEASE_KEY</string>
-        </config-file>
-        
         
     </platform>
 </plugin>
