@@ -342,19 +342,7 @@
 				<param name="ios-package" value="EasemobPlugin" />
 			</feature>
 		</config-file>
-        <!--config-file-->
-        <resource-file src="src/ios/EaseSDK_Params.plist"/>
         
-        <config-file target="*EaseSDK_Params.plist" parent="params">
-            <dict>
-                <key>APP_KEY</key>
-                <string>$APP_KEY</string>
-                <key>CERTIFICATE_DEBUG_KEY</key>
-                <string>$CERTIFICATE_DEBUG_KEY</string>
-                <key>CERTIFICATE_RELEASE_KEY</key>
-                <string>$CERTIFICATE_RELEASE_KEY</string>
-            </dict>
-        </config-file>
         
         <header-file src="src/ios/AppDelegate+EaseMob.h" />
         <source-file src="src/ios/AppDelegate+EaseMob.m" />
@@ -541,9 +529,59 @@
         <resource-file src="src/ios/EaseUI_SDK/Resource/user@2x.png" />
         <resource-file src="src/ios/EaseUI_SDK/Resource/en.lproj" />
         <resource-file src="src/ios/EaseUI_SDK/Resource/zh-Hans.lproj" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_002.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_002_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_007.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_007_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_010.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_010_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_012.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_012_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_013.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_013_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_018.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_018_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_019.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_019_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_020.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_020_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_021.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_021_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_022.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_022_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_024.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_024_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_027.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_027_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_029.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_029_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_030.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_030_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_035.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_035_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_040.gif" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/icon_040_cover.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/btn_back_black@2x.png" />
         <header-file src="src/ios/TTGlobalUICommon.h" />
         <source-file src="src/ios/TTGlobalUICommon.m" />
+        <header-file src="src/ios/ChatViewController.h" />
+        <source-file src="src/ios/ChatViewController.m" />
         <header-file src="src/ios/EasemobPlugin.h" />
         <source-file src="src/ios/EasemobPlugin.m" />
-	</platform>
+        
+        <!--config-file-->
+        <resource-file src="src/ios/EaseSDK_Params.plist"/>
+        
+        <config-file target="*EaseSDK_Params.plist" parent="params">
+            <dict>
+                <key>APP_KEY</key>
+                <string>$APP_KEY</string>
+                <key>CERTIFICATE_DEBUG_KEY</key>
+                <string>$CERTIFICATE_DEBUG_KEY</string>
+                <key>CERTIFICATE_RELEASE_KEY</key>
+                <string>$CERTIFICATE_RELEASE_KEY</string>
+            </dict>
+        </config-file>
+        
+    </platform>
 </plugin>
