@@ -1,10 +1,13 @@
 package com.tyrion.plugin.easemob;
 
-import android.app.NotificationManager;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 import com.easemob.EMCallBack;
+import com.easemob.EMConnectionListener;
+import com.easemob.EMError;
 import com.easemob.EMEventListener;
 import com.easemob.EMNotifierEvent;
 import com.easemob.chat.EMChat;
@@ -14,10 +17,11 @@ import com.easemob.chat.EMGroupManager;
 import com.easemob.chat.EMMessage;
 import com.easemob.easeui.controller.EaseUI.EaseSettingsProvider;
 import com.easemob.easeui.controller.EaseUI;
+import com.easemob.util.NetUtils;
+
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
-import org.apache.cordova.dialogs.Notification;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,12 +29,28 @@ import org.json.JSONObject;
 /**
  * This class echoes a string called from JavaScript.
  */
-public class EasemobPlugin extends CordovaPlugin implements EMEventListener, EaseSettingsProvider{
+public class EasemobPlugin extends CordovaPlugin implements EMEventListener, EaseSettingsProvider, EMConnectionListener {
 
+    private static EasemobPlugin instance;
     CallbackContext callback;
     static String currentChatID = "";
     public Context context = null;
     private MyEaseNotifier notifier;
+    public EasemobPlugin() {
+        instance = this;
+    }
+
+    public interface MessageType {
+        int login_successed = 0;        //登录成功消息
+        int login_failed = 1;           //登录失败消息
+        int received_msg = 2;           //接收一条消息
+        int joinedGroup = 3;            //加入群聊
+        int leavedGroup_BeRemoved = 4;  //被管理员移除出该群组
+        int leavedGroup_UserLeave = 5;  //用户主动退出该群组
+        int leavedGroup_Destroyed = 6;  //该群组被别人销毁
+        int loginFromOtherDevice = 7;   //在其他设备上登录成功,强制下线
+    }
+
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("init")) {
@@ -43,6 +63,7 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
 
             EMChatManager.getInstance().registerEventListener(this);//监听新消息，弹出顶部通知
             EaseUI.getInstance().setSettingsProvider(this);//设置震动和铃声
+            EMChatManager.getInstance().addConnectionListener(this);//监听链接状态，用于检查是否异地登录
 
             notifier = new MyEaseNotifier(context);
 
@@ -147,13 +168,26 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
     public void onEvent(EMNotifierEvent event) {
         if(event.getEvent() == EMNotifierEvent.Event.EventNewMessage){
             EMMessage message = (EMMessage) event.getData();
-//            Log.e("msg", message.getBody().toString());
+            String chatID = EMMessageUtil.getChatID(message);
 
-            String chatID = message.getFrom();
-            if (message.getChatType() == EMMessage.ChatType.GroupChat) {
-                chatID = message.getTo();
+            //新消息-JS监听数据
+            JSONObject msgJson = new JSONObject();
+            try {
+                msgJson.put("messageType", MessageType.received_msg);
+
+                JSONObject msgData = new JSONObject();
+                msgData.put("chat_id", chatID);
+                msgData.put("title", EMMessageUtil.getMsgContent(message));
+                msgData.put("timestamp", message.getMsgTime());
+                msgData.put("unread_count", EMMessageUtil.getUnreadCount(message));
+
+                msgJson.put("messageData", msgData);
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
+            EasemobPlugin.transmit("receiveEasemobMessage", msgJson);
 
+            //非当前会话则弹出通知
             if (!currentChatID.equals(chatID)) {
                 notifier.onNewMsg(message);
             }
@@ -178,5 +212,62 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
     @Override
     public boolean isSpeakerOpened() {
         return true;
+    }
+
+
+    static void transmit(String methodName, JSONObject data) {
+        if (instance == null) {
+            return;
+        }
+        String js = String.format("window.plugins.easemobPlugin.%sInAndroidCallback('%s');", methodName, data.toString());
+        instance.sendJavascript(js);
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    private void sendJavascript(final String javascript) {
+        webView.getRootView().post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                        webView.sendJavascript(javascript);
+                    } else {
+                        webView.loadUrl("javascript:" + javascript);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+             }
+        });
+    }
+
+    @Override
+    public void onConnected() {
+
+    }
+
+    @Override
+    public void onDisconnected(int error) {
+        if(error == EMError.USER_REMOVED){
+            Log.e("onDisconnected", "显示帐号已经被移除");
+        }else if (error == EMError.CONNECTION_CONFLICT) {
+            Log.e("onDisconnected", "显示帐号在其他设备登陆");
+
+            //新消息-JS监听数据
+            JSONObject msgJson = new JSONObject();
+            try {
+                msgJson.put("messageType", MessageType.loginFromOtherDevice);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            EasemobPlugin.transmit("receiveEasemobMessage", msgJson);
+        } else {
+            if (NetUtils.hasNetwork(context)){
+                Log.e("onDisconnected", "连接不到聊天服务器");
+            }else {
+                Log.e("onDisconnected", "当前网络不可用，请检查网络设置");
+            }
+        }
     }
 }

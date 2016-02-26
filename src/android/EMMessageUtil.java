@@ -1,5 +1,7 @@
 package com.tyrion.plugin.easemob;
 
+import com.easemob.chat.EMChatManager;
+import com.easemob.chat.EMConversation;
 import com.easemob.chat.EMMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,5 +41,11 @@ public class EMMessageUtil {
             chatID = message.getTo();
         }
         return chatID;
+    }
+
+    public static int getUnreadCount(EMMessage message){
+        String chatId =  EMMessageUtil.getChatID(message);
+        EMConversation conversation = EMChatManager.getInstance().getConversation(chatId);
+        return conversation.getUnreadMsgCount();
     }
 }

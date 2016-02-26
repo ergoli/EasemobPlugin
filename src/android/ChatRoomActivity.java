@@ -5,12 +5,15 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
+import com.easemob.EMConnectionListener;
+import com.easemob.EMError;
 import com.easemob.chat.EMChatManager;
 import com.easemob.chat.EMChatOptions;
 import com.easemob.easeui.EaseConstant;
 import com.easemob.easeui.controller.EaseUI;
 import com.easemob.easeui.domain.EaseUser;
 import com.easemob.easeui.ui.EaseChatFragment;
+import com.easemob.util.NetUtils;
 import com.evicord.panart.R;
 
 import org.json.JSONException;
@@ -19,7 +22,7 @@ import org.json.JSONObject;
 /**
  * Created by Tyrion on 16/2/19.
  */
-public class ChatRoomActivity extends FragmentActivity{
+public class ChatRoomActivity extends FragmentActivity implements EMConnectionListener {
 
     JSONObject usersJson = null;
     String groupID = "";
@@ -28,6 +31,8 @@ public class ChatRoomActivity extends FragmentActivity{
         // TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+
+        EMChatManager.getInstance().addConnectionListener(this);//监听链接状态，用于检查是否异地登录
 
         Intent intent=getIntent();
         groupID =intent.getStringExtra("groupID");
@@ -81,5 +86,17 @@ public class ChatRoomActivity extends FragmentActivity{
     public void onResume() {
         super.onResume();
         EasemobPlugin.currentChatID = groupID;
+    }
+
+    @Override
+    public void onConnected() {
+
+    }
+
+    @Override
+    public void onDisconnected(int error) {
+        if (error == EMError.CONNECTION_CONFLICT) {
+            ChatRoomActivity.this.finish();
+        }
     }
 }
