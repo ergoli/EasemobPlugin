@@ -3,6 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>params</key>
-	<dict/>
+	<dict>
+		<key>APP_KEY</key>
+		<string></string>
+		<key>CERTIFICATE_DEBUG_KEY</key>
+		<string></string>
+		<key>CERTIFICATE_RELEASE_KEY</key>
+		<string></string>
+	</dict>
 </dict>
 </plist>
