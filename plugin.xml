@@ -342,19 +342,7 @@
 				<param name="ios-package" value="EasemobPlugin" />
 			</feature>
 		</config-file>
-        <!--config-file-->
-        <resource-file src="src/ios/EaseSDK_Params.plist"/>
         
-        <config-file target="*EaseSDK_Params.plist" parent="params">
-            <dict>
-                <key>APP_KEY</key>
-                <string>$APP_KEY</string>
-                <key>CERTIFICATE_DEBUG_KEY</key>
-                <string>$CERTIFICATE_DEBUG_KEY</string>
-                <key>CERTIFICATE_RELEASE_KEY</key>
-                <string>$CERTIFICATE_RELEASE_KEY</string>
-            </dict>
-        </config-file>
         
         <header-file src="src/ios/AppDelegate+EaseMob.h" />
         <source-file src="src/ios/AppDelegate+EaseMob.m" />
@@ -577,5 +565,19 @@
         <source-file src="src/ios/TTGlobalUICommon.m" />
         <header-file src="src/ios/EasemobPlugin.h" />
         <source-file src="src/ios/EasemobPlugin.m" />
+        
+        <!--config-file-->
+        <resource-file src="src/ios/EaseSDK_Params.plist"/>
+        
+        <config-file target="*EaseSDK_Params.plist" parent="params">
+            <dict>
+                <key>APP_KEY</key>
+                <string>$APP_KEY</string>
+                <key>CERTIFICATE_DEBUG_KEY</key>
+                <string>$CERTIFICATE_DEBUG_KEY</string>
+                <key>CERTIFICATE_RELEASE_KEY</key>
+                <string>$CERTIFICATE_RELEASE_KEY</string>
+            </dict>
+        </config-file>
 	</platform>
 </plugin>
