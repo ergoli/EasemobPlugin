@@ -52,14 +52,14 @@ public class ChatRoomActivity extends FragmentActivity implements EMConnectionLi
 
             @Override
             public EaseUser getUser(String username) {
-                EaseUser user = new EaseUser(username);
-                try {
-                    user.setNick(usersJson.getJSONObject(username).getString("nickname"));
-                    user.setAvatar(usersJson.getJSONObject(username).getString("avatar"));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return user;
+            EaseUser user = new EaseUser(username);
+            try {
+                user.setNick(usersJson.getJSONObject(username).getString("nickname"));
+                user.setAvatar(usersJson.getJSONObject(username).getString("avatar"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return user;
             }
         });
 
