@@ -15,3 +15,28 @@ exports.chat = function(userID, usersList, success, error) {
 exports.chatRoom = function(roomID, usersList, success, error) {
     exec(success, error, "EasemobPlugin", "chatRoom", [roomID, usersList]);
 };
+
+
+
+var EasemobPlugin = function(){
+};
+
+EasemobPlugin.prototype.receiveEasemobMessageInAndroidCallback = function(data){
+	try{
+		var bToObj  = JSON.parse(data);
+		cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',bToObj);
+	}
+	catch(exception){       
+		console.log(exception);
+	}
+}
+
+if(!window.plugins){
+	window.plugins = {};
+}
+
+if(!window.plugins.easemobPlugin){
+	window.plugins.easemobPlugin = new EasemobPlugin();
+}  
+
+module.exports = new EasemobPlugin(); 

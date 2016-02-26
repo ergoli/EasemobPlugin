@@ -7,6 +7,11 @@ import android.util.Log;
 
 import com.easemob.chat.EMMessage;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import cn.jpush.android.api.JPushInterface;
+
 /**
  * Created by Tyrion on 16/2/25.
  */
