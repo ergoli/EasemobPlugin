@@ -174,7 +174,7 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
             EMMessage message = (EMMessage) event.getData();
             String chatID = EMMessageUtil.getChatID(message);
 
-            //新消息-JS监听数据
+            //##新消息-JS监听数据
             JSONObject msgJson = new JSONObject();
             try {
                 msgJson.put("messageType", MessageType.received_msg);
@@ -258,7 +258,7 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
         }else if (error == EMError.CONNECTION_CONFLICT) {
             Log.e("onDisconnected", "显示帐号在其他设备登陆");
 
-            //新消息-JS监听数据
+            //##新消息-JS监听数据
             JSONObject msgJson = new JSONObject();
             try {
                 msgJson.put("messageType", MessageType.loginFromOtherDevice);
