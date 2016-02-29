@@ -10,7 +10,7 @@
 #import "EaseUI.h"
 #import "Utils.h"
 #import "EasemobPlugin.h"
-
+#import <objc/runtime.h>
 
 
 @interface ChatViewController ()<UIAlertViewDelegate, EaseMessageViewControllerDelegate, EaseMessageViewControllerDataSource>
@@ -72,12 +72,34 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    if (self.conversation.conversationType == eConversationTypeGroupChat) {
-        if ([[self.conversation.ext objectForKey:@"groupSubject"] length])
-        {
-            self.title = [self.conversation.ext objectForKey:@"groupSubject"];
-        }
+//    if (self.conversation.conversationType == eConversationTypeGroupChat) {
+//        if ([[self.conversation.ext objectForKey:@"groupSubject"] length])
+//        {
+//            self.title = [self.conversation.ext objectForKey:@"groupSubject"];
+//        }
+//    }
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    NSInteger rs=[[EaseMob sharedInstance].chatManager loadTotalUnreadMessagesCountFromDatabase];
+    NSMutableDictionary *m_dic=[NSMutableDictionary dictionary];
+    NSInteger message_type;
+    if(rs<=0)
+    {
+        message_type=clearAllConversationRedDot;
     }
+    else
+    {
+        message_type=clearRedDotWithConversationID;
+    }
+    if(message_type==clearRedDotWithConversationID)
+    {
+        [m_dic setObject:self.conversation.chatter forKey:@"chat_id"];
+    }
+    NSDictionary *dict=@{@"messageType":@(message_type),@"messageData":m_dic};
+    [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
 }
 
 #pragma mark - setup subviews
@@ -254,6 +276,8 @@
 
 - (void)backAction
 {
+    objc_setAssociatedObject([UIApplication sharedApplication], conversationIDKey, nil, OBJC_ASSOCIATION_COPY_NONATOMIC);
+    
     if (self.deleteConversationIfNull) {
         //判断当前会话是否为空，若符合则删除该会话
         EMMessage *message = [self.conversation latestMessage];
@@ -266,7 +290,7 @@
 
 - (void)showGroupDetailAction
 {
-    NSDictionary *dict=@{@"messageType":@(8)};
+    NSDictionary *dict=@{@"messageType":@(stateGoSetting)};
     [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
     [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }

@@ -26,6 +26,7 @@ static const CGFloat kDefaultPlaySoundInterval = 3.0;
 static NSString *kMessageType = @"MessageType";
 static NSString *kConversationChatter = @"ConversationChatter";
 static void *LastPlaySoundDateKey = &LastPlaySoundDateKey;
+
 @implementation AppDelegate (EaseMob)
 
 - (void)easemobApplication:(UIApplication *)application
@@ -97,7 +98,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 
 - (void)didLoginFromOtherDevice
 {
-    NSDictionary *dict=@{@"messageType":@(7)};
+    NSDictionary *dict=@{@"messageType":@(loginFromOtherDevice)};
     [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
 }
 
@@ -106,11 +107,22 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 // 离开群组回调
 - (void)group:(EMGroup *)group didLeave:(EMGroupLeaveReason)reason error:(EMError *)error
 {
-    if(reason==eGroupLeaveReason_UserLeave)
-    {
-       return;
+    NSInteger msg_type;
+    switch (reason) {
+        case eGroupLeaveReason_BeRemoved:
+            msg_type=leavedGroup_BeRemoved;
+            break;
+        case eGroupLeaveReason_UserLeave:
+            msg_type=leavedGroup_UserLeave;
+            break;
+        case eGroupLeaveReason_Destroyed:
+            msg_type=leavedGroup_Destroyed;
+            break;
     }
-    NSInteger msg_type=reason+3;
+    if(msg_type==leavedGroup_UserLeave)
+    {
+        return;
+    }
     NSDictionary *msg_data=@{@"chat_id":group.groupId};
     NSDictionary *dict=@{@"messageType":@(msg_type),@"messageData":msg_data};
     [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
@@ -155,29 +167,21 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
                                error:(EMError *)error
 {
     NSDictionary *msg_data=@{@"chat_id":group.groupId};
-    NSDictionary *dict=@{@"messageType":@(3),@"messageData":msg_data};
+    NSDictionary *dict=@{@"messageType":@(joinedGroup),@"messageData":msg_data};
     [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
-    /*
-    if(error){
-        return;
-    }
-    
-    NSString *groupTag = group.groupSubject;
-    if ([groupTag length] == 0) {
-        groupTag = group.groupId;
-    }
-    
-    NSString *message = [NSString stringWithFormat:NSLocalizedString(@"group.agreedAndJoined", @"agreed and joined the group of \'%@\'"), groupTag];
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"prompt", @"Prompt") message:message delegate:nil cancelButtonTitle:NSLocalizedString(@"ok", @"OK") otherButtonTitles:nil, nil];
-    [alertView show];
-    */
 }
 
 #pragma mark - EMChatManagerUtilDelegate
 
 -(void)didReceiveMessage:(EMMessage *)message
 {
+    NSString *conversation_ID=objc_getAssociatedObject([UIApplication sharedApplication],conversationIDKey);
+    if(conversation_ID&&[conversation_ID isEqualToString:message.from])
+    {
+        return;
+    }
     EMConversation *conversation=[[EaseMob sharedInstance].chatManager conversationForChatter:message.from conversationType:(EMConversationType)message.messageType];
+    
     NSNumber *unreadMessagesCount=[NSNumber numberWithUnsignedInteger:conversation.unreadMessagesCount];
     NSDictionary *dict=@{@"chat_id":message.from,@"title":[EasemobPlugin getMessageTitle:message],@"timestamp":[NSNumber numberWithLongLong:message.timestamp],@"unread_count":unreadMessagesCount};
     [[NSNotificationCenter defaultCenter] postNotificationName:networkDidReceiveMessageFromIM
@@ -192,7 +196,6 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
                 break;
         }
 #endif
-
 }
 
 

@@ -15,7 +15,7 @@
 #import "AppDelegate.h"
 #import "TTGlobalUICommon.h"
 #import "ChatViewController.h"
-
+#import <objc/runtime.h>
 
 @implementation EasemobPlugin
 
@@ -47,23 +47,17 @@
     NSString *group_ID=command.arguments[0];
     NSDictionary *userInfo=command.arguments[1];
     NSString *groupName=command.arguments[2];
-    [self CreateGroupVC:group_ID userInfo:userInfo groupName:groupName];
+    [self CreateChatVC:group_ID conversationType:eConversationTypeGroupChat userInfo:userInfo title:groupName];
 }
 
--(void)CreateChatVC:(NSString *)conversationChatter conversationType:(EMConversationType)conversationType
+-(void)CreateChatVC:(NSString *)conversationChatter conversationType:(EMConversationType)conversationType userInfo:(NSDictionary*)userInfo title:(NSString*)title
 {
-    ChatViewController *chat=[[ChatViewController alloc] initWithConversationChatter:conversationChatter conversationType:conversationType];
+    objc_setAssociatedObject([UIApplication sharedApplication],conversationIDKey,conversationChatter,OBJC_ASSOCIATION_COPY_NONATOMIC);
     
-    UINavigationController *nav=[[UINavigationController alloc] initWithRootViewController:chat];
-    AppDelegate *app_delegate=[UIApplication sharedApplication].delegate;
-    [app_delegate.viewController presentViewController:nav animated:YES completion:nil];
-}
-
--(void)CreateGroupVC:(NSString *)conversationChatter userInfo:(NSDictionary*)userInfo groupName:(NSString*)groupName
-{
     ChatViewController *chat=[[ChatViewController alloc] initWithConversationChatter:conversationChatter conversationType:eConversationTypeGroupChat];
-    chat.nav_title=groupName;
+    chat.nav_title=title;
     chat.userInfo=userInfo;
+
     UINavigationController *nav=[[UINavigationController alloc] initWithRootViewController:chat];
     AppDelegate *app_delegate=[UIApplication sharedApplication].delegate;
     [app_delegate.viewController presentViewController:nav animated:YES completion:nil];
@@ -81,7 +75,7 @@
 -(void)networkDidReceiveMessageFromIM:(id)notification
 {
     NSDictionary *dict = [notification object];
-    NSString *JsonString=[self JsonString:@{@"messageType":@(2),@"messageData":dict}];
+    NSString *JsonString=[self JsonString:@{@"messageType":@(received_msg),@"messageData":dict}];
     [self sendMsg:JsonString];
 }
 
@@ -190,7 +184,9 @@
 
              [self removeEmptyConversationsFromDB];
              
-             NSString *JsonString=[self JsonString:@{@"messageType":@(0)}];
+             NSInteger rs=[[EaseMob sharedInstance].chatManager loadTotalUnreadMessagesCountFromDatabase];
+            
+             NSString *JsonString=[self JsonString:@{@"messageType":@(login_successed),@"messageData":@{@"unread_count":@(rs)}}];
              dispatch_async(dispatch_get_main_queue(), ^{
                  [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
              });
@@ -198,10 +194,10 @@
          }
          else
          {
-             NSInteger rs=1;
+             NSInteger rs=login_failed;
              if(error.errorCode==EMErrorServerTooManyOperations)
              {
-                 rs=0;
+                 rs=login_successed;
              }
              NSString *JsonString=[self JsonString:@{@"messageType":@(rs)}];
              dispatch_async(dispatch_get_main_queue(), ^{
