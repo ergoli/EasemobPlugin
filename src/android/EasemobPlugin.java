@@ -49,6 +49,10 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
         int leavedGroup_UserLeave = 5;  //用户主动退出该群组
         int leavedGroup_Destroyed = 6;  //该群组被别人销毁
         int loginFromOtherDevice = 7;   //在其他设备上登录成功,强制下线
+        int stateGoSetting = 8;//跳转到聊天设置页面
+        int clearRedDotWithConversationID = 9;//根据会话ID,清空该会话列表上对应红点
+        int clearAllConversationRedDot = 10;//清空会话列表上所有红点
+        int clickNotification = 11; //点击通知栏通知
     }
 
     @Override
