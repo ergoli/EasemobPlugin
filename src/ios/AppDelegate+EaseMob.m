@@ -33,6 +33,8 @@ static void *LastPlaySoundDateKey = &LastPlaySoundDateKey;
 didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveLocalNotification:) name:CDVLocalNotification object:nil];
+    
     objc_setAssociatedObject([UIApplication sharedApplication], LastPlaySoundDateKey,[NSDate date],OBJC_ASSOCIATION_COPY_NONATOMIC);
     
     [APService setBadge:0];
@@ -62,7 +64,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
                     didFinishLaunchingWithOptions:launchOptions
                                            appkey:appkey
                                      apnsCertName:apnsCertName
-                                      otherConfig:@{kSDKConfigEnableConsoleLogger:[NSNumber numberWithBool:YES]}];
+                                      otherConfig:@{kSDKConfigEnableConsoleLogger:[NSNumber numberWithBool:YES],@"easeSandBox":[NSNumber numberWithBool:[self isSpecifyServer]]}];
     
     [self registerEaseMobNotification];
     
@@ -72,6 +74,68 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     if( ([[[UIDevice currentDevice] systemVersion] doubleValue]>=7.0)) {
         [[UINavigationBar appearance] setTranslucent:NO];
     }
+}
+
+-(BOOL)isSpecifyServer{
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    
+    NSNumber *specifyServer = [ud objectForKey:@"identifier_enable"];
+    if ([specifyServer boolValue]) {
+        NSString *apnsCertName = nil;
+#if DEBUG
+        apnsCertName = @"chatdemoui_dev";
+#else
+        apnsCertName = @"chatdemoui";
+#endif
+        NSString *appkey = [ud stringForKey:@"identifier_appkey"];
+        if (!appkey)
+        {
+            appkey = @"easemob-demo#chatdemoui";
+            [ud setObject:appkey forKey:@"identifier_appkey"];
+        }
+        NSString *imServer = [ud stringForKey:@"identifier_imserver"];
+        if (!imServer)
+        {
+            imServer = @"im1.sandbox.easemob.com";
+            [ud setObject:imServer forKey:@"identifier_imserver"];
+        }
+        NSString *imPort = [ud stringForKey:@"identifier_import"];
+        if (!imPort)
+        {
+            imPort = @"443";
+            [ud setObject:imPort forKey:@"identifier_import"];
+        }
+        NSString *restServer = [ud stringForKey:@"identifier_restserver"];
+        if (!restServer)
+        {
+            restServer = @"a1.sdb.easemob.com";
+            [ud setObject:restServer forKey:@"identifier_restserver"];
+        }
+        [ud synchronize];
+        
+        NSDictionary *dic = @{kSDKAppKey:appkey,
+                              kSDKApnsCertName:apnsCertName,
+                              kSDKServerApi:restServer,
+                              kSDKServerChat:imServer,
+                              kSDKServerGroupDomain:@"conference.easemob.com",
+                              kSDKServerChatDomain:@"easemob.com",
+                              kSDKServerChatPort:imPort};
+        
+        id easemob = [EaseMob sharedInstance];
+        SEL selector = @selector(registerPrivateServerWithParams:);
+        [easemob performSelector:selector withObject:dic];
+        return YES;
+    } else {
+        NSNumber *useIP = [ud objectForKey:@"identifier_userip_enable"];
+        if (!useIP) {
+            [ud setObject:[NSNumber numberWithBool:YES] forKey:@"identifier_userip_enable"];
+            [ud synchronize];
+        } else {
+            [[EaseMob sharedInstance].chatManager setIsUseIp:[useIP boolValue]];
+        }
+    }
+    
+    return NO;
 }
 
 #pragma mark - App Delegate
@@ -127,26 +191,6 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     NSDictionary *dict=@{@"messageType":@(msg_type),@"messageData":msg_data};
     [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
     
-    /*
-    NSString *tmpStr = group.groupSubject;
-    NSString *str;
-    if (!tmpStr || tmpStr.length == 0) {
-        NSArray *groupArray = [[EaseMob sharedInstance].chatManager groupList];
-        for (EMGroup *obj in groupArray) {
-            if ([obj.groupId isEqualToString:group.groupId]) {
-                tmpStr = obj.groupSubject;
-                break;
-            }
-        }
-    }
-    
-    if (reason == eGroupLeaveReason_BeRemoved) {
-        str = [NSString stringWithFormat:NSLocalizedString(@"group.beKicked", @"you have been kicked out from the group of \'%@\'"), tmpStr];
-    }
-    if (str.length > 0) {
-        TTAlertNoTitle(str);
-    }
-    */
 }
 
 //// 申请加入群组被拒绝回调
@@ -172,7 +216,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 }
 
 #pragma mark - EMChatManagerUtilDelegate
-
+//接收在线消息回调
 -(void)didReceiveMessage:(EMMessage *)message
 {
     NSString *conversation_ID=objc_getAssociatedObject([UIApplication sharedApplication],conversationIDKey);
@@ -284,11 +328,11 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
    
     
     notification.userInfo = @{kMessageType:[NSNumber numberWithInt:message.messageType],kConversationChatter:message.conversationChatter};
-
+    
     //发送通知
     [[UIApplication sharedApplication] scheduleLocalNotification:notification];
-    //    UIApplication *application = [UIApplication sharedApplication];
-    //    application.applicationIconBadgeNumber += 1;
+    UIApplication *application = [UIApplication sharedApplication];
+    application.applicationIconBadgeNumber += 1;
 }
 
 
@@ -356,6 +400,12 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
     //[[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
     [self setupUnreadMessageCount];
+}
+
+#pragma mark - 处理点击本地通知后的回调
+-(void)didReceiveLocalNotification:(NSNotification *)notification
+{
+    
 }
 
 @end
