@@ -291,7 +291,7 @@
 
 - (void)showGroupDetailAction
 {
-    NSDictionary *dict=@{@"messageType":@(stateGoSetting)};
+    NSDictionary *dict=@{@"messageType":@(stateGoSetting),@"messageData":@{@"server_id":@(self.server_id)}};
     [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
     [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }

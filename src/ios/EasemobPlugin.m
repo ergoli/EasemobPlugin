@@ -48,21 +48,27 @@
     NSString *group_ID=command.arguments[0];
     NSDictionary *userInfo=command.arguments[1];
     NSString *groupName=command.arguments[2];
-    [self CreateChatVC:group_ID conversationType:eConversationTypeGroupChat userInfo:userInfo title:groupName];
+    NSNumber *serverID=command.arguments[3];
+    [self CreateChatVC:group_ID conversationType:eConversationTypeGroupChat userInfo:userInfo title:groupName server_id:[serverID integerValue]];
 }
 
--(void)CreateChatVC:(NSString *)conversationChatter conversationType:(EMConversationType)conversationType userInfo:(NSDictionary*)userInfo title:(NSString*)title
+-(void)ignoreGroupPush:(CDVInvokedUrlCommand*)command
+{
+   NSString *group_ID=command.arguments[0];
+   NSNumber *is_ignore=command.arguments[1];
+   [[EaseMob sharedInstance].chatManager asyncIgnoreGroupPushNotification:group_ID isIgnore:[is_ignore boolValue]];
+}
+
+-(void)CreateChatVC:(NSString *)conversationChatter conversationType:(EMConversationType)conversationType userInfo:(NSDictionary*)userInfo title:(NSString*)title server_id:(NSInteger)server_id
 {
     AppDelegate *app_delegate=(AppDelegate*)[UIApplication sharedApplication].delegate;
     app_delegate.accessibilityValue=conversationChatter;
     
-    
     ChatViewController *chat=[[ChatViewController alloc] initWithConversationChatter:conversationChatter conversationType:eConversationTypeGroupChat];
     chat.nav_title=title;
     chat.userInfo=userInfo;
-
+    chat.server_id=server_id;
     UINavigationController *nav=[[UINavigationController alloc] initWithRootViewController:chat];
-   
     [app_delegate.viewController presentViewController:nav animated:YES completion:nil];
 }
 
@@ -92,11 +98,13 @@
 /*根据数组id获取环信会话信息*/
 -(void)getLatestMessage:(CDVInvokedUrlCommand*)command
 {
-    NSArray *array_ID=command.arguments[0];
-    NSMutableArray *rs_array=[NSMutableArray arrayWithCapacity:array_ID.count];
+    NSArray *array=command.arguments[0];
+    NSMutableArray *rs_array=[NSMutableArray arrayWithCapacity:array.count];
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
         NSArray *conversations = [[EaseMob sharedInstance].chatManager conversations];
-        for (NSString* chatter in array_ID) {
+        for (NSDictionary* data in array) {
+            NSString* chatter=[data objectForKey:@"chat_id"];
+            id server_id=[data objectForKey:@"server_id"];
             for (EMConversation *obj in conversations) {
                 if([chatter isEqualToString:obj.chatter])
                 {
@@ -104,7 +112,7 @@
                     NSString*title=[EasemobPlugin getMessageTitle:lastMessage];
                     NSNumber *timestamp=[NSNumber numberWithLongLong:lastMessage.timestamp];
                     NSNumber *unreadMessagesCount=[NSNumber numberWithUnsignedInteger:obj.unreadMessagesCount];
-                    [rs_array addObject:@{@"chat_id":chatter,@"title":title,@"timestamp":timestamp,@"unread_count":unreadMessagesCount}];
+                    [rs_array addObject:@{@"chat_id":chatter,@"title":title,@"timestamp":timestamp,@"unread_count":unreadMessagesCount,@"server_id":server_id}];
                     break;
                 }
             }

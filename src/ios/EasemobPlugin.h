@@ -48,6 +48,9 @@ static NSString *sendMsgToWebView=@"sendMsgToWebView";
 
 +(NSString*)getMessageTitle:(EMMessage *)message;
 
+/*群消息免打扰*/
+-(void)ignoreGroupPush:(CDVInvokedUrlCommand*)command;
+
 /*是否从Jpush通知启动应用*/
 -(void)isLaunchWithJPush:(CDVInvokedUrlCommand*)command;
 @end
