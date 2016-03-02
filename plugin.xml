@@ -116,6 +116,7 @@
 		<source-file src="src/android/res/drawable/voice_from_icon.xml" target-dir="res/drawable" />
 		<source-file src="src/android/res/drawable/voice_to_icon.xml" target-dir="res/drawable" />
 
+		<source-file src="src/android/res/drawable-hdpi/ease_ui_back.png" target-dir="res/drawable-hdpi" />
 		<source-file src="src/android/res/drawable-hdpi/ease_app_panel_video_icon.9.png" target-dir="res/drawable-hdpi" />
 		<source-file src="src/android/res/drawable-hdpi/ease_appitem_del_btn_normal.png" target-dir="res/drawable-hdpi" />
 		<source-file src="src/android/res/drawable-hdpi/ease_appitem_del_btn_pressed.png" target-dir="res/drawable-hdpi" />

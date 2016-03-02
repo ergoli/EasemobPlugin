@@ -17,6 +17,7 @@ import com.easemob.chat.EMGroupManager;
 import com.easemob.chat.EMMessage;
 import com.easemob.easeui.controller.EaseUI.EaseSettingsProvider;
 import com.easemob.easeui.controller.EaseUI;
+import com.easemob.exceptions.EaseMobException;
 import com.easemob.util.NetUtils;
 
 import org.apache.cordova.CordovaPlugin;
@@ -125,12 +126,15 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
 
             String groupID = args.getString(0);
             String usersList = args.getString(1);
+            String groupName = args.getString(2);
+            String serverID = args.getString(3);
 
-            Log.e("groupID", groupID);
-            Log.e("usersList", usersList);
+//            Log.e("groupID", groupID);
+//            Log.e("usersList", usersList);
 
             Intent intent = new Intent();
             intent.putExtra("groupID", groupID);
+            intent.putExtra("serverID", serverID);
             intent.putExtra("usersList", usersList);
             intent.setClass(this.cordova.getActivity(), ChatRoomActivity.class);
             this.cordova.getActivity().startActivity(intent);
@@ -150,12 +154,16 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
             JSONArray lastMsgs = new JSONArray();
             for(int i=0; i<groupID.length(); i++){
                 JSONObject lastMsg = new JSONObject();
-                String chatId = groupID.getString(i);
+                JSONObject ids = groupID.getJSONObject(i);
+
+                String chatId = ids.getString("chat_id");
+                String serverId = ids.getString("server_id");
 
                 EMConversation conversation = EMChatManager.getInstance().getConversation(chatId);
                 int unreadMsgCount = conversation.getUnreadMsgCount();
                 EMMessage message = conversation.getLastMessage();
                 lastMsg.put("chat_id", chatId);
+                lastMsg.put("server_id", serverId);
                 lastMsg.put("unread_count", unreadMsgCount);
                 lastMsg.put("title", EMMessageUtil.getMsgContent(message));
                 lastMsg.put("timestamp", message.getMsgTime());
@@ -165,6 +173,27 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
             PluginResult result = new PluginResult(PluginResult.Status.OK, lastMsgs);
             callback.sendPluginResult(result);
         }
+
+        if(action.equals("ignoreGroupPush")){
+            callback = callbackContext;
+            String groupID = args.getString(0);
+            Boolean isIgnore = args.getBoolean(1);
+
+            if(isIgnore){
+                try {
+                    EMGroupManager.getInstance().blockGroupMessage(groupID);
+                } catch (EaseMobException e) {
+                    e.printStackTrace();
+                }
+            }else {
+                try {
+                    EMGroupManager.getInstance().unblockGroupMessage(groupID);
+                } catch (EaseMobException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         return false;
     }
 
@@ -219,7 +248,7 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
     }
 
 
-    static void transmit(String methodName, JSONObject data) {
+    public static void transmit(String methodName, JSONObject data) {
         if (instance == null) {
             return;
         }
