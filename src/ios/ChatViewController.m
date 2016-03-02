@@ -299,7 +299,16 @@
 
 - (void)showGroupDetailAction
 {
-    NSDictionary *dict=@{@"messageType":@(stateGoSetting),@"messageData":@{@"server_id":@(self.server_id)}};
+    BOOL isIgnore=NO;
+    NSArray*ignoredGroupIds=[[EaseMob sharedInstance].chatManager ignoredGroupIds];
+    for (NSString *groupID in ignoredGroupIds) {
+        if([self.conversation.chatter isEqualToString:groupID])
+        {
+            isIgnore=YES;
+            break;
+        }
+    }
+    NSDictionary *dict=@{@"messageType":@(stateGoSetting),@"messageData":@{@"server_id":@(self.server_id),@"isIgnore":@(isIgnore)}};
     [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
     [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }
