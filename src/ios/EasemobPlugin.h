@@ -23,6 +23,7 @@ typedef enum _messageType
     clearRedDotWithConversationID,//根据会话ID,清空该会话列表上对应红点
     clearAllConversationRedDot,//清空会话列表上所有红点}MessageType;
     stateGoMsgCenter,//跳转到消息列表
+    updateUIWithConversationID,//更新该会话UI
 }MessageType;
 
 

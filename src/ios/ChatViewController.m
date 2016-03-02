@@ -276,17 +276,25 @@
 
 - (void)backAction
 {
-    AppDelegate *app_delegate=(AppDelegate*)[UIApplication sharedApplication].delegate;
-    app_delegate.accessibilityValue=nil;
-    
-    if (self.deleteConversationIfNull) {
+    NSDictionary *dict=nil;
         //判断当前会话是否为空，若符合则删除该会话
         EMMessage *message = [self.conversation latestMessage];
-        if (message == nil) {
+        if (self.deleteConversationIfNull&&message == nil) {
             [[EaseMob sharedInstance].chatManager removeConversationByChatter:self.conversation.chatter deleteMessages:NO append2Chat:YES];
+            dict=@{@"messageType":@(updateUIWithConversationID)};
         }
-    }
-    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+        else
+        {
+            NSString*title=[EasemobPlugin getMessageTitle:message];
+            NSNumber *timestamp=[NSNumber numberWithLongLong:message.timestamp];
+            NSDictionary*msg_data=@{@"chat_id":self.conversation.chatter,@"title":title,@"timestamp":timestamp,@"server_id":@(self.server_id)};
+            dict=@{@"messageType":@(updateUIWithConversationID),@"messageData":msg_data};
+        }
+    
+        [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
+        AppDelegate *app_delegate=(AppDelegate*)[UIApplication sharedApplication].delegate;
+        app_delegate.accessibilityValue=nil;
+        [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)showGroupDetailAction
