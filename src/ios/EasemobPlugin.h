@@ -22,12 +22,16 @@ typedef enum _messageType
     stateGoSetting,//跳转到聊天设置页面
     clearRedDotWithConversationID,//根据会话ID,清空该会话列表上对应红点
     clearAllConversationRedDot,//清空会话列表上所有红点}MessageType;
+    stateGoMsgCenter,//跳转到消息列表
+    updateUIWithConversationID,//更新该会话UI
 }MessageType;
 
 
 static NSString *networkDidReceiveMessageFromIM=@"networkDidReceiveMessageFromIM";
 static NSString *sendMsgToWebView=@"sendMsgToWebView";
-static void *conversationIDKey = &conversationIDKey;
+
+
+
 @interface EasemobPlugin : CDVPlugin
 
 /*环信异步登陆*/
@@ -44,4 +48,10 @@ static void *conversationIDKey = &conversationIDKey;
 -(void)chatRoom:(CDVInvokedUrlCommand*)command;
 
 +(NSString*)getMessageTitle:(EMMessage *)message;
+
+/*群消息免打扰*/
+-(void)ignoreGroupPush:(CDVInvokedUrlCommand*)command;
+
+/*是否从Jpush通知启动应用*/
+-(void)isLaunchWithJPush:(CDVInvokedUrlCommand*)command;
 @end

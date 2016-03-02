@@ -25,7 +25,7 @@
 static const CGFloat kDefaultPlaySoundInterval = 3.0;
 static NSString *kMessageType = @"MessageType";
 static NSString *kConversationChatter = @"ConversationChatter";
-static void *LastPlaySoundDateKey = &LastPlaySoundDateKey;
+
 
 @implementation AppDelegate (EaseMob)
 
@@ -33,6 +33,8 @@ static void *LastPlaySoundDateKey = &LastPlaySoundDateKey;
 didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveLocalNotification:) name:CDVLocalNotification object:nil];
+    
     objc_setAssociatedObject([UIApplication sharedApplication], LastPlaySoundDateKey,[NSDate date],OBJC_ASSOCIATION_COPY_NONATOMIC);
     
     [APService setBadge:0];
@@ -73,6 +75,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
         [[UINavigationBar appearance] setTranslucent:NO];
     }
 }
+
 
 #pragma mark - App Delegate
 // 将得到的deviceToken传给SDK
@@ -127,26 +130,6 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     NSDictionary *dict=@{@"messageType":@(msg_type),@"messageData":msg_data};
     [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
     
-    /*
-    NSString *tmpStr = group.groupSubject;
-    NSString *str;
-    if (!tmpStr || tmpStr.length == 0) {
-        NSArray *groupArray = [[EaseMob sharedInstance].chatManager groupList];
-        for (EMGroup *obj in groupArray) {
-            if ([obj.groupId isEqualToString:group.groupId]) {
-                tmpStr = obj.groupSubject;
-                break;
-            }
-        }
-    }
-    
-    if (reason == eGroupLeaveReason_BeRemoved) {
-        str = [NSString stringWithFormat:NSLocalizedString(@"group.beKicked", @"you have been kicked out from the group of \'%@\'"), tmpStr];
-    }
-    if (str.length > 0) {
-        TTAlertNoTitle(str);
-    }
-    */
 }
 
 //// 申请加入群组被拒绝回调
@@ -172,10 +155,11 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 }
 
 #pragma mark - EMChatManagerUtilDelegate
-
+//接收在线消息回调
 -(void)didReceiveMessage:(EMMessage *)message
 {
-    NSString *conversation_ID=objc_getAssociatedObject([UIApplication sharedApplication],conversationIDKey);
+    AppDelegate *app_delegate=(AppDelegate*)[UIApplication sharedApplication].delegate;
+    NSString *conversation_ID=app_delegate.accessibilityValue;
     if(conversation_ID&&[conversation_ID isEqualToString:message.from])
     {
         return;
@@ -284,11 +268,11 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
    
     
     notification.userInfo = @{kMessageType:[NSNumber numberWithInt:message.messageType],kConversationChatter:message.conversationChatter};
-
+    
     //发送通知
     [[UIApplication sharedApplication] scheduleLocalNotification:notification];
-    //    UIApplication *application = [UIApplication sharedApplication];
-    //    application.applicationIconBadgeNumber += 1;
+    UIApplication *application = [UIApplication sharedApplication];
+    application.applicationIconBadgeNumber += 1;
 }
 
 
@@ -313,6 +297,25 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 // 打印收到的apns信息
 -(void)didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
+    AppDelegate*app=(AppDelegate*)[UIApplication sharedApplication].delegate;
+  
+    
+    NSString *from=[userInfo objectForKey:@"f"];
+    NSString *to=[userInfo objectForKey:@"t"];
+    //NSString *groupID=[userInfo objectForKey:@"g"];
+    NSString *msgID=[userInfo objectForKey:@"m"];
+    
+    if(from&&to&&msgID)
+    {
+        app.accessibilityValue=@"2";
+    }
+    else
+    {
+        app.accessibilityValue=@"1";
+    }
+    
+    
+    
 //    NSError *parseError = nil;
 //    NSData  *jsonData = [NSJSONSerialization dataWithJSONObject:userInfo
 //                                                        options:NSJSONWritingPrettyPrinted error:&parseError];
@@ -356,6 +359,13 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
     //[[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
     [self setupUnreadMessageCount];
+}
+
+#pragma mark - 处理点击本地通知后的回调
+-(void)didReceiveLocalNotification:(NSNotification *)notification
+{
+    NSDictionary *dict=@{@"messageType":@(stateGoMsgCenter)};
+    [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
 }
 
 @end

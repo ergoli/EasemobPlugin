@@ -128,13 +128,12 @@
     _recordAnimationView.image = [UIImage imageNamed:[_voiceMessageAnimationImages objectAtIndex:0]];
     double voiceSound = 0;
     voiceSound = [[EMCDDeviceManager sharedInstance] emPeekRecorderVoiceMeter];
-    int index = voiceSound*[_voiceMessageAnimationImages count];
+    int index = voiceSound*[_voiceMessageAnimationImages count]-1;
     if (index > [_voiceMessageAnimationImages count]) {
         _recordAnimationView.image = [UIImage imageNamed:[_voiceMessageAnimationImages lastObject]];
     } else {
         _recordAnimationView.image = [UIImage imageNamed:[_voiceMessageAnimationImages objectAtIndex:index]];
     }
-    
     /*
     if (0 < voiceSound <= 0.05) {
         [_recordAnimationView setImage:[UIImage imageNamed:@"EaseUIResource.bundle/EaseUIResource.bundle/VoiceSearchFeedback001"]];

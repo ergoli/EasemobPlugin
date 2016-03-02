@@ -11,4 +11,5 @@
 @interface ChatViewController : EaseMessageViewController
 @property (nonatomic,strong) NSString *nav_title;
 @property (nonatomic,strong) NSDictionary *userInfo;
+@property (nonatomic,assign) NSInteger server_id;
 @end

@@ -12,6 +12,7 @@
 
 #import "AppDelegate.h"
 #import "EaseMob.h"
+static void *LastPlaySoundDateKey = &LastPlaySoundDateKey;
 @interface AppDelegate (EaseMob)<EMChatManagerDelegate>
 - (void)easemobApplication:(UIApplication *)application
 didFinishLaunchingWithOptions:(NSDictionary *)launchOptions;
