@@ -25,7 +25,7 @@
 static const CGFloat kDefaultPlaySoundInterval = 3.0;
 static NSString *kMessageType = @"MessageType";
 static NSString *kConversationChatter = @"ConversationChatter";
-static void *LastPlaySoundDateKey = &LastPlaySoundDateKey;
+
 
 @implementation AppDelegate (EaseMob)
 
@@ -64,7 +64,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
                     didFinishLaunchingWithOptions:launchOptions
                                            appkey:appkey
                                      apnsCertName:apnsCertName
-                                      otherConfig:@{kSDKConfigEnableConsoleLogger:[NSNumber numberWithBool:YES],@"easeSandBox":[NSNumber numberWithBool:[self isSpecifyServer]]}];
+                                      otherConfig:@{kSDKConfigEnableConsoleLogger:[NSNumber numberWithBool:YES]}];
     
     [self registerEaseMobNotification];
     
@@ -76,67 +76,6 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     }
 }
 
--(BOOL)isSpecifyServer{
-    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-    
-    NSNumber *specifyServer = [ud objectForKey:@"identifier_enable"];
-    if ([specifyServer boolValue]) {
-        NSString *apnsCertName = nil;
-#if DEBUG
-        apnsCertName = @"chatdemoui_dev";
-#else
-        apnsCertName = @"chatdemoui";
-#endif
-        NSString *appkey = [ud stringForKey:@"identifier_appkey"];
-        if (!appkey)
-        {
-            appkey = @"easemob-demo#chatdemoui";
-            [ud setObject:appkey forKey:@"identifier_appkey"];
-        }
-        NSString *imServer = [ud stringForKey:@"identifier_imserver"];
-        if (!imServer)
-        {
-            imServer = @"im1.sandbox.easemob.com";
-            [ud setObject:imServer forKey:@"identifier_imserver"];
-        }
-        NSString *imPort = [ud stringForKey:@"identifier_import"];
-        if (!imPort)
-        {
-            imPort = @"443";
-            [ud setObject:imPort forKey:@"identifier_import"];
-        }
-        NSString *restServer = [ud stringForKey:@"identifier_restserver"];
-        if (!restServer)
-        {
-            restServer = @"a1.sdb.easemob.com";
-            [ud setObject:restServer forKey:@"identifier_restserver"];
-        }
-        [ud synchronize];
-        
-        NSDictionary *dic = @{kSDKAppKey:appkey,
-                              kSDKApnsCertName:apnsCertName,
-                              kSDKServerApi:restServer,
-                              kSDKServerChat:imServer,
-                              kSDKServerGroupDomain:@"conference.easemob.com",
-                              kSDKServerChatDomain:@"easemob.com",
-                              kSDKServerChatPort:imPort};
-        
-        id easemob = [EaseMob sharedInstance];
-        SEL selector = @selector(registerPrivateServerWithParams:);
-        [easemob performSelector:selector withObject:dic];
-        return YES;
-    } else {
-        NSNumber *useIP = [ud objectForKey:@"identifier_userip_enable"];
-        if (!useIP) {
-            [ud setObject:[NSNumber numberWithBool:YES] forKey:@"identifier_userip_enable"];
-            [ud synchronize];
-        } else {
-            [[EaseMob sharedInstance].chatManager setIsUseIp:[useIP boolValue]];
-        }
-    }
-    
-    return NO;
-}
 
 #pragma mark - App Delegate
 // 将得到的deviceToken传给SDK
@@ -219,7 +158,8 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 //接收在线消息回调
 -(void)didReceiveMessage:(EMMessage *)message
 {
-    NSString *conversation_ID=objc_getAssociatedObject([UIApplication sharedApplication],conversationIDKey);
+    AppDelegate *app_delegate=(AppDelegate*)[UIApplication sharedApplication].delegate;
+    NSString *conversation_ID=app_delegate.accessibilityValue;
     if(conversation_ID&&[conversation_ID isEqualToString:message.from])
     {
         return;
@@ -357,6 +297,25 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 // 打印收到的apns信息
 -(void)didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
+    AppDelegate*app=(AppDelegate*)[UIApplication sharedApplication].delegate;
+  
+    
+    NSString *from=[userInfo objectForKey:@"f"];
+    NSString *to=[userInfo objectForKey:@"t"];
+    //NSString *groupID=[userInfo objectForKey:@"g"];
+    NSString *msgID=[userInfo objectForKey:@"m"];
+    
+    if(from&&to&&msgID)
+    {
+        app.accessibilityValue=@"2";
+    }
+    else
+    {
+        app.accessibilityValue=@"1";
+    }
+    
+    
+    
 //    NSError *parseError = nil;
 //    NSData  *jsonData = [NSJSONSerialization dataWithJSONObject:userInfo
 //                                                        options:NSJSONWritingPrettyPrinted error:&parseError];
@@ -405,7 +364,8 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 #pragma mark - 处理点击本地通知后的回调
 -(void)didReceiveLocalNotification:(NSNotification *)notification
 {
-    
+    NSDictionary *dict=@{@"messageType":@(stateGoMsgCenter)};
+    [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
 }
 
 @end

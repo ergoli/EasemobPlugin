@@ -13,6 +13,7 @@
 #import "EaseEmotionManager.h"
 #import "APService.h"
 #import "AppDelegate.h"
+#import "AppDelegate+EaseMob.h"
 #import "TTGlobalUICommon.h"
 #import "ChatViewController.h"
 #import <objc/runtime.h>
@@ -52,14 +53,16 @@
 
 -(void)CreateChatVC:(NSString *)conversationChatter conversationType:(EMConversationType)conversationType userInfo:(NSDictionary*)userInfo title:(NSString*)title
 {
-    objc_setAssociatedObject([UIApplication sharedApplication],conversationIDKey,conversationChatter,OBJC_ASSOCIATION_COPY_NONATOMIC);
+    AppDelegate *app_delegate=(AppDelegate*)[UIApplication sharedApplication].delegate;
+    app_delegate.accessibilityValue=conversationChatter;
+    
     
     ChatViewController *chat=[[ChatViewController alloc] initWithConversationChatter:conversationChatter conversationType:eConversationTypeGroupChat];
     chat.nav_title=title;
     chat.userInfo=userInfo;
 
     UINavigationController *nav=[[UINavigationController alloc] initWithRootViewController:chat];
-    AppDelegate *app_delegate=[UIApplication sharedApplication].delegate;
+   
     [app_delegate.viewController presentViewController:nav animated:YES completion:nil];
 }
 
@@ -165,11 +168,20 @@
 {
     NSString *username=command.arguments[0];
     NSString *password=command.arguments[1];
+   
+    __block BOOL isRedirectChatList=NO;
+    AppDelegate *app_delegate=(AppDelegate*)[UIApplication sharedApplication].delegate;
+    if(app_delegate.accessibilityValue&&[app_delegate.accessibilityValue isEqualToString:@"2"])
+    {
+        isRedirectChatList=YES;
+        app_delegate.accessibilityValue=nil;
+    }
     [[EaseMob sharedInstance].chatManager asyncLoginWithUsername:username
                                                         password:password
                                                       completion:
      ^(NSDictionary *loginInfo, EMError *error) {
          
+         NSString *JsonString=nil;
          if (loginInfo && !error) {
              //设置是否自动登录
              [[EaseMob sharedInstance].chatManager setIsAutoLoginEnabled:NO];
@@ -186,10 +198,7 @@
              
              NSInteger rs=[[EaseMob sharedInstance].chatManager loadTotalUnreadMessagesCountFromDatabase];
             
-             NSString *JsonString=[self JsonString:@{@"messageType":@(login_successed),@"messageData":@{@"unread_count":@(rs)}}];
-             dispatch_async(dispatch_get_main_queue(), ^{
-                 [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
-             });
+             JsonString=[self JsonString:@{@"messageType":@(login_successed),@"messageData":@{@"unread_count":@(rs),@"isRedirectChatList":@(isRedirectChatList)}}];
              
          }
          else
@@ -199,10 +208,13 @@
              {
                  rs=login_successed;
              }
-             NSString *JsonString=[self JsonString:@{@"messageType":@(rs)}];
-             dispatch_async(dispatch_get_main_queue(), ^{
-                 [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
-             });
+             else
+             {
+                 isRedirectChatList=NO;
+             }
+             JsonString=[self JsonString:@{@"messageType":@(rs),@"messageData":@{@"isRedirectChatList":@(isRedirectChatList)}}];
+
+             
              /*
              switch (error.errorCode)
              {
@@ -229,8 +241,29 @@
              
              
          }
+         
+         dispatch_async(dispatch_get_main_queue(), ^{
+             
+             [self.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireDocumentEvent('Easemob.receiveEasemobMessage',%@)",JsonString]];
+         });
+         
      } onQueue:nil];
 }
+
+-(void)isLaunchWithJPush:(CDVInvokedUrlCommand*)command
+{
+    AppDelegate*app=(AppDelegate*)[UIApplication sharedApplication].delegate;
+    NSString* value=app.accessibilityValue;
+    BOOL isLaunchWithJPush=NO;
+    if(value&&[value isEqualToString:@"1"])
+    {
+        isLaunchWithJPush=YES;
+        app.accessibilityValue=nil;
+    }
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:isLaunchWithJPush];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 
 -(void)logOut:(CDVInvokedUrlCommand*)command
 {

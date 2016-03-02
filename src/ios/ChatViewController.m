@@ -11,7 +11,7 @@
 #import "Utils.h"
 #import "EasemobPlugin.h"
 #import <objc/runtime.h>
-
+#import "AppDelegate.h"
 
 @interface ChatViewController ()<UIAlertViewDelegate, EaseMessageViewControllerDelegate, EaseMessageViewControllerDataSource>
 {
@@ -276,7 +276,8 @@
 
 - (void)backAction
 {
-    objc_setAssociatedObject([UIApplication sharedApplication], conversationIDKey, nil, OBJC_ASSOCIATION_COPY_NONATOMIC);
+    AppDelegate *app_delegate=(AppDelegate*)[UIApplication sharedApplication].delegate;
+    app_delegate.accessibilityValue=nil;
     
     if (self.deleteConversationIfNull) {
         //判断当前会话是否为空，若符合则删除该会话
