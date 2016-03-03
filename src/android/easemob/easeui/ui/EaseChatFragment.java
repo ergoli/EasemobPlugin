@@ -16,6 +16,7 @@ import android.provider.MediaStore;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.text.ClipboardManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -59,6 +60,11 @@ import com.easemob.easeui.widget.EaseVoiceRecorderView.EaseVoiceRecorderCallback
 import com.easemob.easeui.widget.chatrow.EaseCustomChatRowProvider;
 import com.easemob.util.EMLog;
 import com.easemob.util.PathUtil;
+import com.tyrion.plugin.easemob.EMMessageUtil;
+import com.tyrion.plugin.easemob.EasemobPlugin;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * 可以直接new出来使用的聊天对话页面fragment，
@@ -81,6 +87,7 @@ public class EaseChatFragment extends EaseBaseFragment implements EMEventListene
     protected Bundle fragmentArgs;
     protected int chatType;
     protected String toChatUsername;
+    protected String serverID;
     protected EaseChatMessageList messageList;
     protected EaseChatInputMenu inputMenu;
 
@@ -126,7 +133,7 @@ public class EaseChatFragment extends EaseBaseFragment implements EMEventListene
         chatType = fragmentArgs.getInt(EaseConstant.EXTRA_CHAT_TYPE, EaseConstant.CHATTYPE_SINGLE);
         // 会话人或群组id
         toChatUsername = fragmentArgs.getString(EaseConstant.EXTRA_USER_ID);
-
+        serverID = fragmentArgs.getString(EaseConstant.EXTRA_SERVER_ID);
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -189,6 +196,8 @@ public class EaseChatFragment extends EaseBaseFragment implements EMEventListene
      */
     protected void setUpView() {
         titleBar.setTitle(toChatUsername);
+        titleBar.setTitleColor(getResources().getColor(R.color.top_bar_text_color));
+        titleBar.setLeftImageResource(R.drawable.ease_ui_back);
         if (chatType == EaseConstant.CHATTYPE_SINGLE) { // 单聊
             // 设置标题
             if(EaseUserUtils.getUserInfo(toChatUsername) != null){
@@ -215,7 +224,7 @@ public class EaseChatFragment extends EaseBaseFragment implements EMEventListene
             onMessageListInit();
         }
 
-        // 设置标题栏点击事件
+        // 标题栏-退回键-点击事件
         titleBar.setLeftLayoutClickListener(new OnClickListener() {
 
             @Override
@@ -223,15 +232,31 @@ public class EaseChatFragment extends EaseBaseFragment implements EMEventListene
                 getActivity().finish();
             }
         });
+
+        // 标题栏-设置键-点击事件
         titleBar.setRightLayoutClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                if (chatType == EaseConstant.CHATTYPE_SINGLE) {
-                    emptyHistory();
-                } else {
-                    toGroupDetails();
+            if (chatType == EaseConstant.CHATTYPE_SINGLE) {
+                emptyHistory();
+            } else {
+                //##新消息-JS监听数据
+                JSONObject msgJson = new JSONObject();
+                try {
+                    msgJson.put("messageType", EasemobPlugin.MessageType.stateGoSetting);
+
+                    JSONObject msgData = new JSONObject();
+                    msgData.put("chat_id", toChatUsername);
+                    msgData.put("server_id", serverID);
+                    msgJson.put("messageData", msgData);
+//                    Log.e("setRightLayoutClickListener", serverID);
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
+                EasemobPlugin.transmit("receiveEasemobMessage", msgJson);
+                getActivity().finish();
+            }
             }
         });
 

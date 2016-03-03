@@ -36,10 +36,19 @@
         android:layout_alignParentRight="true"
         android:background="@drawable/ease_common_tab_bg" >
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="设置"
+            android:textSize="16sp"
+            android:textColor="@color/top_bar_text_color"/>
+
         <ImageView
             android:id="@+id/right_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:layout_centerInParent="true"
             android:scaleType="centerInside" />
     </RelativeLayout>

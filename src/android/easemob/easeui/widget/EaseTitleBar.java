@@ -2,6 +2,7 @@ package com.easemob.easeui.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -73,7 +74,11 @@ public class EaseTitleBar extends RelativeLayout{
             ta.recycle();
         }
     }
-    
+
+    public void setTitleColor(int color){
+        titleView.setTextColor(color);
+    }
+
     public void setLeftImageResource(int resId) {
         leftImage.setImageResource(resId);
     }

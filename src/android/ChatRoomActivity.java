@@ -26,6 +26,7 @@ public class ChatRoomActivity extends FragmentActivity implements EMConnectionLi
 
     JSONObject usersJson = null;
     String groupID = "";
+    String serverID = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // TODO Auto-generated method stub
@@ -35,9 +36,10 @@ public class ChatRoomActivity extends FragmentActivity implements EMConnectionLi
         EMChatManager.getInstance().addConnectionListener(this);//监听链接状态，用于检查是否异地登录
 
         Intent intent=getIntent();
-        groupID =intent.getStringExtra("groupID");
+        groupID = intent.getStringExtra("groupID");
+        serverID = intent.getStringExtra("serverID");
         final String usersList =intent.getStringExtra("usersList");
-        Log.e("groupID", groupID);
+//        Log.e("groupID", groupID);
 
         EaseUI easeUI = EaseUI.getInstance();
 
@@ -54,6 +56,7 @@ public class ChatRoomActivity extends FragmentActivity implements EMConnectionLi
             public EaseUser getUser(String username) {
             EaseUser user = new EaseUser(username);
             try {
+//                Log.e(usersJson.getJSONObject(username).getString("nickname"), username);
                 user.setNick(usersJson.getJSONObject(username).getString("nickname"));
                 user.setAvatar(usersJson.getJSONObject(username).getString("avatar"));
             } catch (Exception e) {
@@ -67,6 +70,7 @@ public class ChatRoomActivity extends FragmentActivity implements EMConnectionLi
         Bundle args = new Bundle();
         args.putInt(EaseConstant.EXTRA_CHAT_TYPE, EaseConstant.CHATTYPE_GROUP);
         args.putString(EaseConstant.EXTRA_USER_ID, groupID);
+        args.putString(EaseConstant.EXTRA_SERVER_ID, serverID);
         chatFragment.setArguments(args);
         getSupportFragmentManager().beginTransaction().add(R.id.container, chatFragment).commit();
     }
