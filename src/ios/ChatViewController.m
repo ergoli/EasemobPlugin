@@ -96,7 +96,7 @@
     }
     if(message_type==clearRedDotWithConversationID)
     {
-        [m_dic setObject:self.conversation.chatter forKey:@"chat_id"];
+        [m_dic setObject:@(self.server_id) forKey:@"server_id"];
     }
     NSDictionary *dict=@{@"messageType":@(message_type),@"messageData":m_dic};
     [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
