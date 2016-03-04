@@ -113,26 +113,22 @@
                 if([chatter isEqualToString:obj.chatter])
                 {
                     EMMessage *lastMessage = [obj latestMessage];
-                    NSString*title=[EasemobPlugin getMessageTitle:lastMessage];
-                    NSNumber *timestamp=[NSNumber numberWithLongLong:lastMessage.timestamp];
+                    NSString *title=@"";
+                    NSNumber *timestamp=@(0);
+                    if(lastMessage)
+                    {
+                        title=[EasemobPlugin getMessageTitle:lastMessage];
+                        timestamp=[NSNumber numberWithLongLong:lastMessage.timestamp];
+                    }
                     NSNumber *unreadMessagesCount=[NSNumber numberWithUnsignedInteger:obj.unreadMessagesCount];
                     [rs_array addObject:@{@"chat_id":chatter,@"title":title,@"timestamp":timestamp,@"unread_count":unreadMessagesCount,@"server_id":server_id}];
                     break;
                 }
             }
         }
-        NSArray* sorted = [rs_array sortedArrayUsingComparator:
-                           ^(NSDictionary *obj1, NSDictionary* obj2){
-                               NSNumber *timestamp1 = [obj1 objectForKey:@"timestamp"];
-                               NSNumber *timestamp2 = [obj2 objectForKey:@"timestamp"];
-                               if(timestamp1.longLongValue > timestamp2.longLongValue) {
-                                   return(NSComparisonResult)NSOrderedAscending;
-                               }else {
-                                   return(NSComparisonResult)NSOrderedDescending;
-                               }
-        }];
+
         
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:sorted];
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:rs_array];
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         });
