@@ -9,6 +9,7 @@ import com.easemob.EMConnectionListener;
 import com.easemob.EMError;
 import com.easemob.chat.EMChatManager;
 import com.easemob.chat.EMChatOptions;
+import com.easemob.chat.EMGroupManager;
 import com.easemob.easeui.EaseConstant;
 import com.easemob.easeui.controller.EaseUI;
 import com.easemob.easeui.domain.EaseUser;
@@ -48,7 +49,6 @@ public class ChatRoomActivity extends FragmentActivity implements EMConnectionLi
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         //设置头像和昵称
         easeUI.setUserProfileProvider(new EaseUI.EaseUserProfileProvider() {
 
@@ -90,6 +90,25 @@ public class ChatRoomActivity extends FragmentActivity implements EMConnectionLi
     public void onResume() {
         super.onResume();
         EasemobPlugin.currentChatID = groupID;
+
+        //##新消息-JS监听数据
+        JSONObject msgJson = new JSONObject();
+        try {
+            if(EMChatManager.getInstance().getUnreadMsgsCount() > 0){
+                msgJson.put("messageType", EasemobPlugin.MessageType.clearRedDotWithConversationID);
+                JSONObject msgData = new JSONObject();
+                msgData.put("chat_id", groupID);
+                msgData.put("server_id", serverID);
+                msgJson.put("messageData", msgData);
+//                Log.e("清空单个消息", groupID);
+            }else{
+                msgJson.put("messageType", EasemobPlugin.MessageType.clearAllConversationRedDot);
+//                Log.e("清空所有消息", "all");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        EasemobPlugin.transmit("receiveEasemobMessage", msgJson);
     }
 
     @Override

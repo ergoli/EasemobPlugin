@@ -90,6 +90,21 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
                     EMGroupManager.getInstance().loadAllGroups();
                     EMChatManager.getInstance().loadAllConversations();
 //                    Log.e("onSuccess", "登陆聊天服务器成功！");
+
+                    int unreadCount = EMChatManager.getInstance().getUnreadMsgsCount();
+                    //##登录回调-成功
+                    JSONObject msgJson = new JSONObject();
+                    try {
+                        msgJson.put("messageType", MessageType.login_successed);
+
+                        JSONObject msgData = new JSONObject();
+                        msgData.put("unread_count", unreadCount);
+                        msgJson.put("messageData", msgData);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    EasemobPlugin.transmit("receiveEasemobMessage", msgJson);
                 }
 
                 @Override
@@ -99,12 +114,17 @@ public class EasemobPlugin extends CordovaPlugin implements EMEventListener, Eas
 
                 @Override
                 public void onError(int code, String message) {
-                    Log.e("onError", "登陆聊天服务器失败,code=" + code + ",message=" + message);
+//                    Log.e("onError", "登陆聊天服务器失败,code=" + code + ",message=" + message);
+                    //##登录回调-失败
+                    JSONObject msgJson = new JSONObject();
+                    try {
+                        msgJson.put("messageType", MessageType.login_failed);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    EasemobPlugin.transmit("receiveEasemobMessage", msgJson);
                 }
             });
-            PluginResult result = new PluginResult(PluginResult.Status.OK, "userName: " + userName + "/" + "password: " + password);
-            callback.sendPluginResult(result);
-
             return true;
         }
 
