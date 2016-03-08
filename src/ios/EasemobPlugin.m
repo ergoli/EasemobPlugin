@@ -49,7 +49,7 @@
     NSDictionary *userInfo=command.arguments[1];
     NSString *groupName=command.arguments[2];
     NSNumber *serverID=command.arguments[3];
-    [self CreateChatVC:group_ID conversationType:eConversationTypeGroupChat userInfo:userInfo title:groupName server_id:[serverID integerValue]];
+    [self CreateChatVC:group_ID conversationType:eConversationTypeGroupChat userInfo:userInfo title:groupName server_id:[serverID integerValue] callbackId:command.callbackId];
 }
 
 -(void)ignoreGroupPush:(CDVInvokedUrlCommand*)command
@@ -59,7 +59,7 @@
    [[EaseMob sharedInstance].chatManager asyncIgnoreGroupPushNotification:group_ID isIgnore:[is_ignore boolValue]];
 }
 
--(void)CreateChatVC:(NSString *)conversationChatter conversationType:(EMConversationType)conversationType userInfo:(NSDictionary*)userInfo title:(NSString*)title server_id:(NSInteger)server_id
+-(void)CreateChatVC:(NSString *)conversationChatter conversationType:(EMConversationType)conversationType userInfo:(NSDictionary*)userInfo title:(NSString*)title server_id:(NSInteger)server_id callbackId:(NSString*)callbackId
 {
     AppDelegate *app_delegate=(AppDelegate*)[UIApplication sharedApplication].delegate;
     app_delegate.accessibilityValue=conversationChatter;
@@ -69,7 +69,11 @@
     chat.userInfo=userInfo;
     chat.server_id=server_id;
     UINavigationController *nav=[[UINavigationController alloc] initWithRootViewController:chat];
-    [app_delegate.viewController presentViewController:nav animated:YES completion:nil];
+    [app_delegate.viewController presentViewController:nav animated:YES completion:^{
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+    }];
+    
 }
 
 /*应用内接收环信消息*/
@@ -109,26 +113,22 @@
                 if([chatter isEqualToString:obj.chatter])
                 {
                     EMMessage *lastMessage = [obj latestMessage];
-                    NSString*title=[EasemobPlugin getMessageTitle:lastMessage];
-                    NSNumber *timestamp=[NSNumber numberWithLongLong:lastMessage.timestamp];
+                    NSString *title=@"";
+                    NSNumber *timestamp=@(0);
+                    if(lastMessage)
+                    {
+                        title=[EasemobPlugin getMessageTitle:lastMessage];
+                        timestamp=[NSNumber numberWithLongLong:lastMessage.timestamp];
+                    }
                     NSNumber *unreadMessagesCount=[NSNumber numberWithUnsignedInteger:obj.unreadMessagesCount];
                     [rs_array addObject:@{@"chat_id":chatter,@"title":title,@"timestamp":timestamp,@"unread_count":unreadMessagesCount,@"server_id":server_id}];
                     break;
                 }
             }
         }
-        NSArray* sorted = [rs_array sortedArrayUsingComparator:
-                           ^(NSDictionary *obj1, NSDictionary* obj2){
-                               NSNumber *timestamp1 = [obj1 objectForKey:@"timestamp"];
-                               NSNumber *timestamp2 = [obj2 objectForKey:@"timestamp"];
-                               if(timestamp1.longLongValue > timestamp2.longLongValue) {
-                                   return(NSComparisonResult)NSOrderedAscending;
-                               }else {
-                                   return(NSComparisonResult)NSOrderedDescending;
-                               }
-        }];
+
         
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:sorted];
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:rs_array];
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         });

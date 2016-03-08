@@ -96,7 +96,7 @@
     }
     if(message_type==clearRedDotWithConversationID)
     {
-        [m_dic setObject:self.conversation.chatter forKey:@"chat_id"];
+        [m_dic setObject:@(self.server_id) forKey:@"server_id"];
     }
     NSDictionary *dict=@{@"messageType":@(message_type),@"messageData":m_dic};
     [[NSNotificationCenter defaultCenter] postNotificationName:sendMsgToWebView object:dict];
@@ -185,8 +185,18 @@
     model = [[EaseMessageModel alloc] initWithMessage:message];
     model.avatarImage = [UIImage imageNamed:@"EaseUIResource.bundle/user"];
     NSDictionary *userData=[self.userInfo objectForKey:model.nickname];
-    model.avatarURLPath=[userData objectForKey:@"avatar"];
-    model.nickname=[userData objectForKey:@"nickname"];
+    NSString*avatar=[userData objectForKey:@"avatar"];
+    NSString*nickname=[userData objectForKey:@"nickname"];
+    if([Utils isEmptyString:avatar])
+    {
+        avatar=@"";
+    }
+    if([Utils isEmptyString:nickname])
+    {
+        nickname=@"无名氏";
+    }
+    model.avatarURLPath=avatar;
+    model.nickname=nickname;
     model.failImageName = @"imageDownloadFail";
     return model;
 }

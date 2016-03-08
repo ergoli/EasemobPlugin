@@ -563,6 +563,19 @@
         <resource-file src="src/ios/EaseUI_SDK/Resource/icon_040.gif" />
         <resource-file src="src/ios/EaseUI_SDK/Resource/icon_040_cover.png" />
         <resource-file src="src/ios/EaseUI_SDK/Resource/btn_back_black@2x.png" />
+        
+        <resource-file src="src/ios/EaseUI_SDK/Resource/chat_receiver_audio_playing_full@2x.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/chat_receiver_audio_playing000@2x.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/chat_receiver_audio_playing001@2x.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/chat_receiver_audio_playing002@2x.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/chat_receiver_audio_playing003@2x.png" />
+        
+        <resource-file src="src/ios/EaseUI_SDK/Resource/chat_sender_audio_playing_full@2x.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/chat_sender_audio_playing_000@2x.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/chat_sender_audio_playing_001@2x.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/chat_sender_audio_playing_002@2x.png" />
+        <resource-file src="src/ios/EaseUI_SDK/Resource/chat_sender_audio_playing_003@2x.png" />
+        
         <header-file src="src/ios/TTGlobalUICommon.h" />
         <source-file src="src/ios/TTGlobalUICommon.m" />
         <header-file src="src/ios/ChatViewController.h" />
